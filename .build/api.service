@@ -1,0 +1,11 @@
+[Unit]
+Description=Api Server
+After=network.target
+
+[Service]
+User=root
+KillMode=process
+ExecStart=/opt/api_server/server
+
+[Install]
+WantedBy=multi-user.target

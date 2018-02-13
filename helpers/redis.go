@@ -2,17 +2,15 @@ package helpers
 
 import (
 	"github.com/go-redis/redis"
+	"crazy_nl_backend/config"
 )
 
 func GetRedis() (*Redis, error){
-	config, err := DotEnv{}.GetRedisConfig()
-	if err != nil {
-		return nil, err
-	}
+	redisConfig := config.GetRedisConfig()
 	client := redis.NewClient(&redis.Options{
-		Addr: config.Host,
-		Password: config.Password,
-		DB: config.Db,
+		Addr: redisConfig.Host,
+		Password: redisConfig.Password,
+		DB: redisConfig.Db,
 	})
 	return &Redis{
 		Client: client,
@@ -23,6 +21,7 @@ type IRedisClient interface {
 	SIsMember(string, interface{}) (bool, error)
 	SAdd(string, ...interface{}) (int64, error)
 	Close() error
+	SPop(key string) (string, error)
 }
 
 type Redis struct {
@@ -39,4 +38,8 @@ func (channel *Redis) SAdd(key string, member ...interface{}) (int64, error) {
 
 func (channel *Redis) Close() error {
 	return channel.Client.Close()
+}
+
+func (channel *Redis) SPop(key string) (string, error) {
+	return channel.Client.SPop(key).Result()
 }

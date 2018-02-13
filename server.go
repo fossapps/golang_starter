@@ -6,21 +6,28 @@ import (
 	"encoding/json"
 	"gopkg.in/matryer/respond.v1"
 	"crazy_nl_backend/helpers"
+	"crazy_nl_backend/config"
+	"strconv"
+	"github.com/cyberhck/pushy"
+	"time"
 )
 
 type Server struct {
 	Logger *logrus.Logger
-	Db     *helpers.Mongo
+	Db     helpers.IMongoClient
 	Redis  *helpers.Redis
+	Pushy  *pushy.Pushy
 }
 
 func Init() {
-	helpers.InitDotEnv()
 	server := createServer()
 	defer server.cleanup()
 	router := NewRouter(server)
-	server.Logger.Info("Listening on port " + helpers.DotEnv{}.GetServerPort())
-	http.ListenAndServe(":" + helpers.DotEnv{}.GetServerPort(), router)
+	server.Logger.Info("Attempting to listen on port " + strconv.Itoa(config.GetApiPort()))
+	err := http.ListenAndServe(":"+strconv.Itoa(config.GetApiPort()), router)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Decode(r *http.Request, data interface{}) {
@@ -31,24 +38,25 @@ func Decode(r *http.Request, data interface{}) {
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	respond.With(w, r, http.StatusBadRequest, struct {
 		Message string `json:"message"`
-	} {
+	}{
 		Message: message,
 	})
 	return
 }
 
-func createServer() Server{
+func createServer() Server {
 	db := getMongo()
 	return Server{
 		Logger: getLogger(),
 		Db:     db,
 		Redis:  getRedis(),
+		Pushy:  getPushy(),
 	}
 }
 
 func getLogger() *logrus.Logger {
 	logger := logrus.New()
-	level, err := logrus.ParseLevel(helpers.DotEnv{}.GetLogLevel())
+	level, err := logrus.ParseLevel(config.GetLogLevel())
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +64,7 @@ func getLogger() *logrus.Logger {
 	return logger
 }
 
-func getMongo() *helpers.Mongo {
+func getMongo() helpers.IMongoClient {
 	mongo, err := helpers.GetMongo()
 	if err != nil {
 		panic(err)
@@ -64,7 +72,7 @@ func getMongo() *helpers.Mongo {
 	return mongo
 }
 
-func getRedis() *helpers.Redis{
+func getRedis() *helpers.Redis {
 	redis, err := helpers.GetRedis()
 	if err != nil {
 		panic(err)
@@ -75,4 +83,10 @@ func getRedis() *helpers.Redis{
 func (s *Server) cleanup() {
 	s.Db.Close()
 	s.Redis.Close()
+}
+
+func getPushy() *pushy.Pushy {
+	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
+	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Millisecond))
+	return sdk
 }

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/globalsign/mgo"
+	"crazy_nl_backend/config"
 )
 
 type Mongo struct {
@@ -14,8 +15,8 @@ type IMongoClient interface {
 	Copy() IMongoClient
 }
 
-func GetMongo() (*Mongo, error) {
-	mongoConfig := DotEnv{}.GetMongoConfig()
+func GetMongo() (IMongoClient, error) {
+	mongoConfig := config.GetMongoConfig()
 	db, err := mgo.Dial(mongoConfig.Connection)
 	if err != nil {
 		return nil, err
@@ -29,10 +30,14 @@ func (m *Mongo) Close() {
 	m.session.Close()
 }
 
-func (m *Mongo) Copy() *mgo.Session {
-	return m.session.Copy()
+func (m *Mongo) Copy() IMongoClient {
+	return &Mongo{
+		session: m.session.Copy(),
+	}
 }
 
-func (m *Mongo) Clone() *mgo.Session {
-	return m.session.Clone()
+func (m *Mongo) Clone() IMongoClient {
+	return &Mongo{
+		session: m.session.Clone(),
+	}
 }

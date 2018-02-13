@@ -10,6 +10,7 @@ func QueueDeviceRegistration(registrationToken string, redisClient IRedisClient)
 	if result {
 		return errors.New("token already exists")
 	}
+	// todo also check if it's already in mongo db
 	redisClient.SAdd("registration", registrationToken)
 	// SPop will pop it out.
 	return nil
