@@ -13,6 +13,9 @@ serve:
 build-cron:
 	go build -tags dev -o .build/ProcessRegistrationQueue cmd/cron/ProcessRegistrationQueue/main.go
 
+seed:
+	go run -tags dev cmd/seeding/main.go
+
 test:
 	go test -tags dev ./...
 
