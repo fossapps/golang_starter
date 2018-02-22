@@ -87,6 +87,6 @@ func (s *Server) cleanup() {
 
 func getPushy() *pushy.Pushy {
 	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
-	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Millisecond))
+	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Second))
 	return sdk
 }
