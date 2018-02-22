@@ -5,7 +5,7 @@ import (
 	"crazy_nl_backend/config"
 )
 
-func GetRedis() (*Redis, error){
+func GetRedis() (IRedisClient, error){
 	redisConfig := config.GetRedisConfig()
 	client := redis.NewClient(&redis.Options{
 		Addr: redisConfig.Host,

@@ -13,10 +13,10 @@ import (
 )
 
 type Server struct {
-	Logger *logrus.Logger
+	Logger logrus.Logger
 	Db     helpers.IMongoClient
-	Redis  *helpers.Redis
-	Pushy  *pushy.Pushy
+	Redis  helpers.IRedisClient
+	Pushy  pushy.Pushy
 }
 
 func Init() {
@@ -49,19 +49,19 @@ func createServer() Server {
 	return Server{
 		Logger: getLogger(),
 		Db:     db,
-		Redis:  getRedis(),
+		Redis:  *getRedis(),
 		Pushy:  getPushy(),
 	}
 }
 
-func getLogger() *logrus.Logger {
+func getLogger() logrus.Logger {
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.GetLogLevel())
 	if err != nil {
 		panic(err)
 	}
 	logger.SetLevel(level)
-	return logger
+	return *logger
 }
 
 func getMongo() helpers.IMongoClient {
@@ -72,21 +72,21 @@ func getMongo() helpers.IMongoClient {
 	return mongo
 }
 
-func getRedis() *helpers.Redis {
+func getRedis() *helpers.IRedisClient {
 	redis, err := helpers.GetRedis()
 	if err != nil {
 		panic(err)
 	}
-	return redis
+	return &redis
+}
+
+func getPushy() pushy.Pushy {
+	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
+	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Second))
+	return *sdk
 }
 
 func (s *Server) cleanup() {
 	s.Db.Close()
 	s.Redis.Close()
-}
-
-func getPushy() *pushy.Pushy {
-	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
-	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Second))
-	return sdk
 }

@@ -26,6 +26,11 @@ func (m redis) Close() error {
 	return nil
 }
 
+func (m redis) SPop(key string) (string, error) {
+	args := m.Called(key)
+	return args.String(0), args.Error(1)
+}
+
 func TestQueueDeviceRegistrationReturnsErrorIfTokenAlreadyExists(t *testing.T) {
 	mockRedis := new(redis)
 	mockRedis.On("SIsMember", "registration", "token").

@@ -14,7 +14,7 @@ build-cron:
 	go build -tags dev -o .build/ProcessRegistrationQueue cmd/cron/ProcessRegistrationQueue/main.go
 
 test:
-    go test -tags dev
+	go test -tags dev ./...
 
 install:
 	sudo mkdir -p /opt/api_server
