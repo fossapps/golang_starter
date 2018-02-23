@@ -13,16 +13,17 @@ type IMongoClient interface {
 	Close()
 	Clone() IMongoClient
 	Copy() IMongoClient
+	DB(string) IDatabase
 }
 
 func GetMongo() (IMongoClient, error) {
 	mongoConfig := config.GetMongoConfig()
-	db, err := mgo.Dial(mongoConfig.Connection)
+	session, err := mgo.Dial(mongoConfig.Connection)
 	if err != nil {
 		return nil, err
 	}
 	return &Mongo{
-		session: db,
+		session: session,
 	}, nil
 }
 
@@ -39,5 +40,11 @@ func (m *Mongo) Copy() IMongoClient {
 func (m *Mongo) Clone() IMongoClient {
 	return &Mongo{
 		session: m.session.Clone(),
+	}
+}
+
+func (m *Mongo) DB(name string) IDatabase {
+	return Db{
+		DB: m.session.DB(name),
 	}
 }
