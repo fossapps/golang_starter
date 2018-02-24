@@ -6,6 +6,7 @@ type RedisConfig struct {
 }
 type MongoConfig struct {
 	Connection string
+	DbName string
 }
 
 

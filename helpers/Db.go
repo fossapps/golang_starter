@@ -1,10 +1,16 @@
 package helpers
 
+import "github.com/globalsign/mgo"
+
 type IDatabase interface {
 	C(string) ICollection
+	DropDatabase() error
 }
 
-type IDatabaseInstance interface {}
+type IDatabaseInstance interface {
+	C(string) *mgo.Collection
+	DropDatabase() error
+}
 
 type Db struct {
 	DB IDatabaseInstance
@@ -12,6 +18,10 @@ type Db struct {
 
 func (d Db) C(key string) ICollection {
 	return DbCollection{
-		Collection: nil,
+		Collection: d.DB.C(key),
 	}
+}
+
+func (d Db) DropDatabase() error {
+	return d.DB.DropDatabase()
 }

@@ -19,6 +19,12 @@ seed:
 test:
 	go test -tags dev ./...
 
+test-unit:
+	go test -tags dev ./...
+
+test-integration:
+	go test -tags "dev integration" ./...
+
 install:
 	sudo mkdir -p /opt/api_server
 	sudo systemctl stop api.service

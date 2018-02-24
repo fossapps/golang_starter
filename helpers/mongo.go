@@ -16,9 +16,8 @@ type IMongoClient interface {
 	DB(string) IDatabase
 }
 
-func GetMongo() (IMongoClient, error) {
-	mongoConfig := config.GetMongoConfig()
-	session, err := mgo.Dial(mongoConfig.Connection)
+func GetMongo(config *config.MongoConfig) (IMongoClient, error) {
+	session, err := mgo.Dial(config.Connection)
 	if err != nil {
 		return nil, err
 	}

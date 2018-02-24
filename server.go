@@ -65,7 +65,7 @@ func getLogger() logrus.Logger {
 }
 
 func getMongo() helpers.IMongoClient {
-	mongo, err := helpers.GetMongo()
+	mongo, err := helpers.GetMongo(config.GetMongoConfig())
 	if err != nil {
 		panic(err)
 	}
@@ -87,6 +87,5 @@ func getPushy() pushy.Pushy {
 }
 
 func (s *Server) cleanup() {
-	s.Db.Close()
 	s.Redis.Close()
 }
