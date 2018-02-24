@@ -15,10 +15,10 @@ func (UserSeed) GetDescription() string {
 	return "Create default users"
 }
 
-func (UserSeed) Seed(db helpers.IMongoClient) {
+func (UserSeed) Seed(db helpers.IDatabase) {
 	fmt.Println("seeding")
 }
 
-func (UserSeed) Remove() {
+func (UserSeed) Remove(db helpers.IDatabase) {
 
 }

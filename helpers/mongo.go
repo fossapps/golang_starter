@@ -14,6 +14,7 @@ type IMongoClient interface {
 	Clone() IMongoClient
 	Copy() IMongoClient
 	DB(string) IDatabase
+	SetMode(mgo.Mode, bool)
 }
 
 func GetMongo(config *config.MongoConfig) (IMongoClient, error) {
@@ -24,6 +25,10 @@ func GetMongo(config *config.MongoConfig) (IMongoClient, error) {
 	return &Mongo{
 		session: session,
 	}, nil
+}
+
+func (m *Mongo) SetMode(mode mgo.Mode, refresh bool) {
+	m.session.SetMode(mode, refresh)
 }
 
 func (m *Mongo) Close() {
