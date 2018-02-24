@@ -16,6 +16,7 @@ func SeedDb(dbName string) {
 		panic(err)
 	}
 	Seed(UserSeed{}, session.DB(dbName))
+	Seed(PermissionSeeds{}, session.DB(dbName))
 }
 
 func Seed(seeder ISeeder, db helpers.IDatabase) {
@@ -24,7 +25,7 @@ func Seed(seeder ISeeder, db helpers.IDatabase) {
 	}
 	key := seeder.GetKey()
 	description := seeder.GetDescription()
-	fmt.Printf("seeding file: %s", key)
+	fmt.Printf("seeding file: %s\n", key)
 	fmt.Println(description)
 	seeder.Seed(db)
 	markSeeded(seeder, db)
