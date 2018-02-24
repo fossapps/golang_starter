@@ -5,6 +5,7 @@ import (
 	"crazy_nl_backend/helpers"
 	"crazy_nl_backend/config"
 	"time"
+	"github.com/globalsign/mgo/bson"
 )
 
 const SeedingCollectionName = "seeds"
@@ -35,8 +36,8 @@ func shouldRun(seeder ISeeder, db helpers.IDatabase) bool {
 	key := seeder.GetKey()
 	collection := db.C(SeedingCollectionName)
 	result := new(SeedInfo)
-	collection.Find(SeedInfo{
-		Key: key,
+	collection.Find(bson.M{
+		"key": key,
 	}).One(&result)
 	return result.Key != key
 }

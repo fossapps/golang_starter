@@ -2,6 +2,7 @@ package seeds
 
 import (
 	"crazy_nl_backend/helpers"
+	"crazy_nl_backend/models"
 	"fmt"
 )
 
@@ -16,7 +17,15 @@ func (UserSeed) GetDescription() string {
 }
 
 func (UserSeed) Seed(db helpers.IDatabase) {
-	fmt.Println("seeding")
+	admin := models.User{
+		Email:       "admin@example.com",
+		Password:    "admin1234",
+		Permissions: []string{"sudo"},
+	}
+	err := db.C("users").Insert(admin)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (UserSeed) Remove(db helpers.IDatabase) {

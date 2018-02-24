@@ -49,6 +49,10 @@ func (PermissionSeeds) Seed(db helpers.IDatabase) {
 			Key:         "Notification.Delete",
 			Description: "Permission to remove an existing notification",
 		},
+		{
+			Key:         "sudo",
+			Description: "Special Permission, this includes all permissions",
+		},
 	}
 	for _, permission := range permissions {
 		db.C("permissions").Insert(permission)
