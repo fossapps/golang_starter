@@ -17,7 +17,7 @@ func TestGetMongo(t *testing.T) {
 	mongo, _ := helpers.GetMongo(config.GetMongoConfig())
 	defer mongo.Close()
 	db := mongo.DB(config.GetTestingDbName())
-	defer db.DropDatabase()
+	db.DropDatabase()
 	collection := db.C("test")
 	collection.Insert(Name{Name:"Test_Name"})
 	d := collection.Find(bson.M{
@@ -33,7 +33,7 @@ func TestInsertAfterCopy(t *testing.T) {
 	mongo, _ := helpers.GetMongo(config.GetMongoConfig())
 	defer mongo.Close()
 	db := mongo.DB(config.GetTestingDbName())
-	defer db.DropDatabase()
+	db.DropDatabase()
 	collection := db.C("test")
 	collection.Insert(Name{Name:"Test_Name"})
 	d := collection.Find(bson.M{

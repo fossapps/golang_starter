@@ -48,7 +48,7 @@ func TestSeedCallsFirstTime(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 	db := session.DB(config.GetTestingDbName())
-	defer db.DropDatabase()
+	db.DropDatabase()
 	seeds.Seed(mockedSeeder, db)
 	c := db.C(seeds.SeedingCollectionName)
 	info := new(seeds.SeedInfo)
@@ -70,7 +70,7 @@ func TestSeedDoesNotExecuteDuplicates(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 	db := session.DB(config.GetTestingDbName())
-	defer db.DropDatabase()
+	db.DropDatabase()
 	c := db.C(seeds.SeedingCollectionName)
 	c.Insert(seeds.SeedInfo{
 		Key: "test_seed",

@@ -12,14 +12,14 @@ import (
 )
 
 func TestApplicationInit(t *testing.T) {
-	seeds.SeedDb(config.GetTestingDbName())
 	session, err := helpers.GetMongo(config.GetMongoConfig())
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 	db := session.DB(config.GetTestingDbName())
 	assert.NotNil(t, db)
 	defer session.Close()
-	defer db.DropDatabase()
+	db.DropDatabase()
+	seeds.SeedDb(config.GetTestingDbName())
 	count, err := db.C(seeds.SeedingCollectionName).Count()
 	assert.Nil(t, err)
 	assert.NotNil(t, count)
