@@ -2,6 +2,8 @@
 
 package config
 
+import "time"
+
 func GetRedisConfig() *RedisConfig {
 	return &RedisConfig{
 		Host: "",
@@ -31,4 +33,12 @@ func GetPushyToken() string {
 
 func GetTestingDbName() string {
 	panic("shouldn't be running in production mode...")
+}
+
+func GetApplicationConfig() ApplicationConfig {
+	return ApplicationConfig{
+		JWTExpiryTime:10 * time.Minute,
+		JWTSecret:"My_Prod_SECRET",
+		RefreshTokenSize:256,
+	}
 }

@@ -14,7 +14,7 @@ import (
 
 type Server struct {
 	Logger logrus.Logger
-	Db     helpers.IMongoClient
+	Mongo  helpers.IMongoClient
 	Redis  helpers.IRedisClient
 	Pushy  pushy.Pushy
 }
@@ -36,7 +36,7 @@ func Decode(r *http.Request, data interface{}) {
 }
 
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	respond.With(w, r, http.StatusBadRequest, struct {
+	respond.With(w, r, statusCode, struct {
 		Message string `json:"message"`
 	}{
 		Message: message,
@@ -48,7 +48,7 @@ func createServer() Server {
 	db := getMongo()
 	return Server{
 		Logger: getLogger(),
-		Db:     db,
+		Mongo:  db,
 		Redis:  *getRedis(),
 		Pushy:  getPushy(),
 	}

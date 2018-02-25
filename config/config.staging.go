@@ -2,6 +2,8 @@
 
 package config
 
+import "time"
+
 func GetRedisConfig() *RedisConfig {
 	return &RedisConfig{
 		Host: "",
@@ -31,4 +33,12 @@ func GetPushyToken() string {
 
 func GetTestingDbName() string {
 	return "integration_tests_staging"
+}
+
+func GetApplicationConfig() ApplicationConfig {
+	return ApplicationConfig{
+		JWTExpiryTime:10 * time.Minute,
+		JWTSecret:"MY_STAGING_SECRET",
+		RefreshTokenSize:256,
+	}
 }

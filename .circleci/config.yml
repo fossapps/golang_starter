@@ -26,6 +26,7 @@ jobs:
       # specify any bash command here prefixed with `run: `
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: dep ensure
+      - run: make seed
       - run: make test
       - run: make test-integration
       - run: make build

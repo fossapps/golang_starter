@@ -2,10 +2,22 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/cyberhck/pushy"
+  packages = ["."]
+  revision = "9fe20b1b675b4edb282e76ed8398fb5543b2db26"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
+  version = "v3.1.0"
 
 [[projects]]
   branch = "master"
@@ -74,7 +86,11 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "bcrypt",
+    "blowfish",
+    "ssh/terminal"
+  ]
   revision = "5119cf507ed5294cc409c092980c7497ee5d6fd2"
 
 [[projects]]
@@ -95,6 +111,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d382e90a2c656862e85c3808aa95be0cca6dfbaecf9cb2103bdb053fb671018f"
+  inputs-digest = "0226d018c520dee40cf26d60668807979f0b4c3f7747cbd20db922be71a27a56"
   solver-name = "gps-cdcl"
   solver-version = 1

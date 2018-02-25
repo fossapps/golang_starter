@@ -47,3 +47,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/cyberhck/captain"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.1.0"

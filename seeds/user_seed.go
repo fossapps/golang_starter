@@ -4,6 +4,7 @@ import (
 	"crazy_nl_backend/helpers"
 	"crazy_nl_backend/models"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserSeed struct{}
@@ -17,9 +18,10 @@ func (UserSeed) GetDescription() string {
 }
 
 func (UserSeed) Seed(db helpers.IDatabase) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("admin1234"), bcrypt.DefaultCost)
 	admin := models.User{
 		Email:       "admin@example.com",
-		Password:    "admin1234",
+		Password:    string(hash),
 		Permissions: []string{"sudo"},
 	}
 	err := db.C("users").Insert(admin)

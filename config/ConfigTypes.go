@@ -1,4 +1,7 @@
 package config
+
+import "time"
+
 type RedisConfig struct {
 	Host     string
 	Password string
@@ -9,4 +12,8 @@ type MongoConfig struct {
 	DbName string
 }
 
-
+type ApplicationConfig struct {
+	JWTExpiryTime time.Duration
+	JWTSecret string
+	RefreshTokenSize int // should always be more than 128 for security reason
+}
