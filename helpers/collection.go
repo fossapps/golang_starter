@@ -6,6 +6,7 @@ type ICollection interface {
 	Insert(...interface{}) error
 	Find(interface{}) *mgo.Query
 	Count() (int, error)
+	FindId(id interface{}) *mgo.Query
 }
 
 type DbCollection struct {
@@ -22,4 +23,7 @@ func (c DbCollection) Find(query interface{}) *mgo.Query {
 
 func (c DbCollection) Count() (int, error) {
 	return c.Collection.Count()
+}
+func (c DbCollection) FindId(id interface{}) *mgo.Query {
+	return c.Collection.FindId(id)
 }
