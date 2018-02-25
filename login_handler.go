@@ -11,8 +11,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
+
 type LoginResponse struct {
-	JWT string `json:"jwt"`
+	JWT          string `json:"jwt"`
 	RefreshToken string `json:"refresh_token"`
 }
 
@@ -27,6 +28,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		defer session.Close()
 		db := session.DB(config.GetMongoConfig().DbName)
 		user := models.User{}.FindUserByEmail(email, db)
+		// s.Logger.Info(user.ID.String(), user.Email)
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "username/password mismatch")
@@ -40,12 +42,15 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		}
 		refreshToken := getRefreshToken(config.GetApplicationConfig().RefreshTokenSize)
 		res := LoginResponse{
-			JWT:jwtToken,
-			RefreshToken:refreshToken,
+			JWT:          jwtToken,
+			RefreshToken: refreshToken,
 		}
 		db.C("refresh_tokens").Insert(struct {
 			Token string `json:"token"`
-		}{Token:res.RefreshToken})
+			User  string `json:"user"`
+		}{
+			Token: res.RefreshToken,
+			User:  user.ID.String()})
 		respond.With(w, r, http.StatusOK, res)
 	})
 }
@@ -58,7 +63,7 @@ func getRefreshToken(length int) string {
 
 func getJwtForUser(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"email":user.Email,
+		"email":       user.Email,
 		"permissions": user.Permissions,
 	})
 	token.Header["exp"] = time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).UTC().Unix()

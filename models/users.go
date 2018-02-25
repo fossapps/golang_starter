@@ -6,9 +6,10 @@ import (
 )
 
 type User struct {
-	Email string `json:"email"`
-	Password string `json:"password"`
-	Permissions []string `json:"permissions"`
+	ID          bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	Email       string        `json:"email"`
+	Password    string        `json:"password"`
+	Permissions []string      `json:"permissions"`
 }
 
 func (User) FindUserByEmail(email string, db helpers.IDatabase) *User {
