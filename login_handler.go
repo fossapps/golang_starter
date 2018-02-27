@@ -62,7 +62,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		token := strings.TrimPrefix(authHeader, "Bearer ")
-		if token == ""{
+		if token == "" {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "token missing")
 			return
 		}
@@ -88,7 +88,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 		}
 		respond.With(w, r, http.StatusOK, struct {
 			Token string `json:"token"`
-		}{Token:token})
+		}{Token: token})
 	})
 }
 
@@ -100,10 +100,10 @@ func getRefreshToken(length int) string {
 
 func getJwtForUser(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"id": user.ID,
+		"id":          user.ID,
 		"email":       user.Email,
 		"permissions": user.Permissions,
+		"exp": time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
 	})
-	token.Header["exp"] = time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).UTC().Unix()
 	return token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
 }
