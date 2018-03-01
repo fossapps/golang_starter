@@ -9,9 +9,7 @@ import (
 	"github.com/cyberhck/captain"
 
 	"crazy_nl_backend/helpers"
-
 	// "github.com/cyberhck/pushy"
-
 )
 
 type ImportDevices struct {
@@ -25,6 +23,8 @@ func (job ImportDevices) LockProvider() captain.LockProvider {
 
 func (job ImportDevices) Job() captain.Worker {
 	return func(channels captain.CommChan) {
+		// start a while pop doesn't return nil, (maybe don't pop, but if popped, make sure it's imported?)
+		// invoke import on a goroutine which will take care of everything (maybe a maximum of 100 go routines?)
 		channels.Logs <- "working..."
 		time.Sleep(5 * time.Second)
 	}
