@@ -1,34 +1,38 @@
-// +build dev
-
 package config
 
-import "time"
+import (
+	"time"
+	"os"
+	"strconv"
+)
 
 func GetRedisConfig() *RedisConfig {
+	redisDb, _ := strconv.Atoi(os.Getenv("REDIS_DB_VALUE"))
 	return &RedisConfig{
-		Host: "localhost:6379",
-		Password: "",
-		Db: 0,
+		Host:     os.Getenv("REDIS_DB"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		Db:       redisDb,
 	}
 }
 
 func GetMongoConfig() *MongoConfig {
 	return &MongoConfig{
-		Connection: "localhost:27017",
-		DbName: "crazy_nl",
+		Connection: os.Getenv("MONGO_DB_CONNECTION"),
+		DbName:     os.Getenv("MONGO_DB_NAME"),
 	}
 }
 
 func GetLogLevel() string {
-	return "info"
+	return os.Getenv("LOG_LEVEL")
 }
 
 func GetApiPort() int {
-	return 8080
+	port, _ := strconv.Atoi(os.Getenv("API_PORT"))
+	return port
 }
 
 func GetPushyToken() string {
-	return "9a64fc25eb0dee5c0fcb88c6dbc033041a919024279814489fd12c5906184eae"
+	return os.Getenv("PUSHY_TOKEN")
 }
 
 func GetTestingDbName() string {
@@ -36,10 +40,13 @@ func GetTestingDbName() string {
 }
 
 func GetApplicationConfig() ApplicationConfig {
+	validity, _ := strconv.Atoi(os.Getenv("JWT_VALIDITY"))
+	refreshTokenSize, _ := strconv.Atoi(os.Getenv("REFRESH_TOKEN_SIZE"))
 	return ApplicationConfig{
-		JWTExpiryTime:10 * time.Minute,
-		JWTSecret:"SECRET",
-		RefreshTokenSize:256,
-		SlackLoggingAppConfig:"https://hooks.slack.com/services/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",
+		JWTExpiryTime:         time.Duration(validity) * time.Minute,
+		JWTSecret:             os.Getenv("JWT_SECRET"),
+		RefreshTokenSize:      refreshTokenSize,
+		SlackLoggingAppConfig: os.Getenv("SLACK_WEBHOOK"),
+		SlackLogLevel:         os.Getenv("SLACK_LOG_LEVEL"),
 	}
 }

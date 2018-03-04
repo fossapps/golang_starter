@@ -9,12 +9,13 @@ type RedisConfig struct {
 }
 type MongoConfig struct {
 	Connection string
-	DbName string
+	DbName     string
 }
 
 type ApplicationConfig struct {
 	SlackLoggingAppConfig string
-	JWTExpiryTime time.Duration
-	JWTSecret string
-	RefreshTokenSize int // should always be more than 128 for security reason
+	JWTExpiryTime         time.Duration
+	JWTSecret             string
+	RefreshTokenSize      int // should always be more than 128 for security reason
+	SlackLogLevel         string
 }
