@@ -21,7 +21,9 @@ type IRedisClient interface {
 	SIsMember(string, interface{}) (bool, error)
 	SAdd(string, ...interface{}) (int64, error)
 	Close() error
-	SPop(key string) (string, error)
+	SPop(string) (string, error)
+	SRem(string, ...interface{}) (int64, error)
+	SMembers(string) ([]string, error)
 }
 
 type Redis struct {
@@ -42,4 +44,16 @@ func (channel *Redis) Close() error {
 
 func (channel *Redis) SPop(key string) (string, error) {
 	return channel.Client.SPop(key).Result()
+}
+
+func (channel *Redis) LRange(key string, start int64, stop int64) ([]string, error) {
+	return channel.Client.LRange(key, start, stop).Result()
+}
+
+func (channel *Redis) SRem(key string, members ...interface{}) (int64, error) {
+	return channel.Client.SRem(key, members...).Result()
+}
+
+func (channel *Redis) SMembers(key string) ([]string, error) {
+	return channel.Client.SMembers(key).Result()
 }

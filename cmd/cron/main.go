@@ -4,7 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	"crazy_nl_backend/cmd/cron/workers"
+	"crazy_nl_backend/workers"
+	"crazy_nl_backend/helpers"
+	"crazy_nl_backend/config"
+	"github.com/cyberhck/pushy"
+	"time"
 )
 
 func main() {
@@ -18,6 +22,22 @@ func main() {
 }
 
 func importDevices(key string) {
-	job := workers.ImportDevices{}
+	redis, err := helpers.GetRedis()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	db, err := helpers.GetMongo(config.GetMongoConfig())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
+	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(10 * time.Second))
+	job := workers.ImportDevices{
+		Redis: redis,
+		Db:    db.DB(config.GetMongoConfig().DbName),
+		Pushy: sdk,
+	}
 	workers.Run(key, job)
 }

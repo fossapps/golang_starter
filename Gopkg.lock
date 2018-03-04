@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/cyberhck/captain"
+  packages = ["."]
+  revision = "0e904e51248aca78ad85e94fc2955f4b0ed733e7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/cyberhck/pushy"
   packages = ["."]
   revision = "9fe20b1b675b4edb282e76ed8398fb5543b2db26"
@@ -15,7 +21,10 @@
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
-  packages = ["."]
+  packages = [
+    ".",
+    "request"
+  ]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
   version = "v3.1.0"
 
@@ -111,6 +120,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0226d018c520dee40cf26d60668807979f0b4c3f7747cbd20db922be71a27a56"
+  inputs-digest = "11cb8f84f6da8f189646fa78a560c2b6129b34307a5bf265d09f309bccf55f01"
   solver-name = "gps-cdcl"
   solver-version = 1

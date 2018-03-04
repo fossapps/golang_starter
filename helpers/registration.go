@@ -10,13 +10,15 @@ func QueueDeviceRegistration(registrationToken string, redisClient IRedisClient)
 	if result {
 		return errors.New("token already exists")
 	}
-	// todo also check if it's already in mongo db
+	// todo also check if it's already in MongoDb
 	redisClient.SAdd("registration", registrationToken)
 	// SPop will pop it out.
 	return nil
 }
 
-func RegisterDevice(registrationToken string, db IMongoClient) {
-	session := db.Clone()
-	defer session.Close()
+func RegisterDevice(registrationToken string, db IDatabase) {
+	// todo check if registration token already exists
+	db.C("devices").Insert(struct {
+		Token string `json:"token"`
+	}{Token:registrationToken})
 }
