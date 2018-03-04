@@ -40,5 +40,6 @@ func GetApplicationConfig() ApplicationConfig {
 		JWTExpiryTime:10 * time.Minute,
 		JWTSecret:"My_Prod_SECRET",
 		RefreshTokenSize:256,
+		SlackLoggingAppConfig:"https://hooks.slack.com/services/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",
 	}
 }

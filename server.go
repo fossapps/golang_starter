@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"github.com/cyberhck/pushy"
 	"time"
+	"github.com/multiplay/go-slack/lrhook"
+	"github.com/multiplay/go-slack/chat"
 )
 
 type Server struct {
@@ -26,6 +28,7 @@ func Init() {
 	server.Logger.Info("Attempting to listen on port " + strconv.Itoa(config.GetApiPort()))
 	err := http.ListenAndServe(":"+strconv.Itoa(config.GetApiPort()), router)
 	if err != nil {
+		server.Logger.Fatal(err)
 		panic(err)
 	}
 }
@@ -57,11 +60,23 @@ func createServer() Server {
 func getLogger() logrus.Logger {
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.GetLogLevel())
+	logger.AddHook(getSlackHook())
 	if err != nil {
 		panic(err)
 	}
 	logger.SetLevel(level)
 	return *logger
+}
+
+func getSlackHook() *lrhook.Hook {
+	cfg := lrhook.Config{
+		MinLevel:       logrus.WarnLevel,
+		Message: chat.Message{
+			Channel:"#general",
+			IconEmoji:":gopher:",
+		},
+	}
+	return lrhook.New(cfg, config.GetApplicationConfig().SlackLoggingAppConfig)
 }
 
 func getMongo() helpers.IMongoClient {
