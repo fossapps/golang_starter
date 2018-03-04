@@ -31,6 +31,16 @@ func (m redis) SPop(key string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+func (m redis) SMembers(key string) ([]string, error) {
+	args := m.Called(key)
+	return nil, args.Error(1)
+}
+
+func (m redis) SRem(key string, members ...interface{}) (int64, error) {
+	args := m.Called(key)
+	return int64(args.Int(0)), args.Error(1)
+}
+
 func TestQueueDeviceRegistrationReturnsErrorIfTokenAlreadyExists(t *testing.T) {
 	mockRedis := new(redis)
 	mockRedis.On("SIsMember", "registration", "token").
