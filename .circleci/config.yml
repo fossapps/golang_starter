@@ -24,6 +24,7 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
+      - run: cp .env.example .env
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: dep ensure
       - run: make seed
