@@ -1,4 +1,4 @@
-package seeds
+package migrations
 
 import (
 	"crazy_nl_backend/helpers"
@@ -17,7 +17,7 @@ func (UserSeed) GetDescription() string {
 	return "Create default users"
 }
 
-func (UserSeed) Seed(db helpers.IDatabase) {
+func (UserSeed) Apply(db helpers.IDatabase) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("admin1234"), bcrypt.DefaultCost)
 	admin := models.User{
 		Email:       "admin@example.com",

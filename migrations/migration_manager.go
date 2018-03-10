@@ -1,4 +1,4 @@
-package seeds
+package migrations
 
 import (
 	"fmt"
@@ -8,41 +8,41 @@ import (
 	"github.com/globalsign/mgo/bson"
 )
 
-const SeedingCollectionName = "seeds"
+const SeedingCollectionName = "migrations"
 
-func SeedDb(dbName string) {
+func ApplyAll(dbName string) {
 	session, err := helpers.GetMongo(config.GetMongoConfig())
 	defer session.Close()
 	if err != nil {
 		panic(err)
 	}
-	Seed(UserSeed{}, session.DB(dbName))
-	Seed(PermissionSeeds{}, session.DB(dbName))
+	Apply(UserSeed{}, session.DB(dbName))
+	Apply(PermissionSeeds{}, session.DB(dbName))
 }
 
-func Seed(seeder ISeeder, db helpers.IDatabase) {
+func Apply(seeder IMigration, db helpers.IDatabase) {
 	if !shouldRun(seeder, db) {
 		return
 	}
 	key := seeder.GetKey()
 	description := seeder.GetDescription()
-	fmt.Printf("seeding file: %s\n", key)
+	fmt.Printf("applying migration file: %s\n", key)
 	fmt.Println(description)
-	seeder.Seed(db)
-	markSeeded(seeder, db)
+	seeder.Apply(db)
+	markApplied(seeder, db)
 }
 
-func shouldRun(seeder ISeeder, db helpers.IDatabase) bool {
+func shouldRun(seeder IMigration, db helpers.IDatabase) bool {
 	key := seeder.GetKey()
 	collection := db.C(SeedingCollectionName)
-	result := new(SeedInfo)
+	result := new(MigrationInfo)
 	collection.Find(bson.M{
 		"key": key,
 	}).One(&result)
 	return result.Key != key
 }
-func markSeeded(seeder ISeeder, db helpers.IDatabase) {
-	info := SeedInfo{
+func markApplied(seeder IMigration, db helpers.IDatabase) {
+	info := MigrationInfo{
 		Key:seeder.GetKey(),
 		Description:seeder.GetDescription(),
 		AppliedAt:time.Now(),

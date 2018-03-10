@@ -11,8 +11,8 @@ serve:
 build-cron:
 	go build -o .build/ProcessRegistrationQueue cmd/cron/ProcessRegistrationQueue/main.go
 
-seed:
-	go run cmd/seeding/main.go
+migrate:
+	go run cmd/migrations/main.go
 
 test:
 	go test ./...

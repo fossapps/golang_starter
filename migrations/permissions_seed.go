@@ -1,4 +1,4 @@
-package seeds
+package migrations
 
 import (
 	"crazy_nl_backend/helpers"
@@ -19,7 +19,7 @@ func (PermissionSeeds) GetDescription() string {
 	return "Create basic permission systems"
 }
 
-func (PermissionSeeds) Seed(db helpers.IDatabase) {
+func (PermissionSeeds) Apply(db helpers.IDatabase) {
 	permissions := []Permissions{
 		{
 			Key:         "User.Create",

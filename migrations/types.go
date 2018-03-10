@@ -1,17 +1,17 @@
-package seeds
+package migrations
 
 import (
 	"crazy_nl_backend/helpers"
 	"time"
 )
 
-type ISeeder interface {
+type IMigration interface {
 	GetKey() string
 	GetDescription() string
-	Seed(db helpers.IDatabase)
+	Apply(db helpers.IDatabase)
 	Remove(db helpers.IDatabase)
 }
-type SeedInfo struct {
+type MigrationInfo struct {
 	Key string `json:"key"`
 	Description string `json:"description"`
 	AppliedAt time.Time `json:"applied_at"`

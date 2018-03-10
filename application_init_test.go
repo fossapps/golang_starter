@@ -4,7 +4,7 @@ package crazy_nl_backend_test
 
 import (
 	"testing"
-	"crazy_nl_backend/seeds"
+	"crazy_nl_backend/migrations"
 	"crazy_nl_backend/config"
 	"crazy_nl_backend/helpers"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +19,8 @@ func TestApplicationInit(t *testing.T) {
 	assert.NotNil(t, db)
 	defer session.Close()
 	db.DropDatabase()
-	seeds.SeedDb(config.GetTestingDbName())
-	count, err := db.C(seeds.SeedingCollectionName).Count()
+	migrations.ApplyAll(config.GetTestingDbName())
+	count, err := db.C(migrations.SeedingCollectionName).Count()
 	assert.Nil(t, err)
 	assert.NotNil(t, count)
 	fmt.Println(count)

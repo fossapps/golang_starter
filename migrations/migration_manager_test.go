@@ -1,12 +1,12 @@
 // +build integration
 
-package seeds_test
+package migrations_test
 
 import (
 	"github.com/stretchr/testify/mock"
 	"crazy_nl_backend/helpers"
 	"testing"
-	"crazy_nl_backend/seeds"
+	"crazy_nl_backend/migrations"
 	"crazy_nl_backend/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/globalsign/mgo"
@@ -28,7 +28,7 @@ func(m *MockSeeder) GetDescription() string {
 	return args.String(0)
 }
 
-func(m *MockSeeder) Seed(db helpers.IDatabase) {
+func(m *MockSeeder) Apply(db helpers.IDatabase) {
 	m.Called(db)
 }
 
@@ -39,7 +39,7 @@ func TestSeedCallsFirstTime(t *testing.T) {
 	mockedSeeder := new(MockSeeder)
 	mockedSeeder.On("GetKey").Return("test_seed")
 	mockedSeeder.On("GetDescription").Return("test_seed description")
-	mockedSeeder.On("Seed", mock.Anything).Return(nil)
+	mockedSeeder.On("Apply", mock.Anything).Return(nil)
 
 	session, err := helpers.GetMongo(config.GetMongoConfig())
 	session.SetMode(mgo.Monotonic, true)
@@ -49,9 +49,9 @@ func TestSeedCallsFirstTime(t *testing.T) {
 	assert.NotNil(t, session)
 	db := session.DB(config.GetTestingDbName())
 	db.DropDatabase()
-	seeds.Seed(mockedSeeder, db)
-	c := db.C(seeds.SeedingCollectionName)
-	info := new(seeds.SeedInfo)
+	migrations.Apply(mockedSeeder, db)
+	c := db.C(migrations.SeedingCollectionName)
+	info := new(migrations.MigrationInfo)
 	query := c.Find(bson.M{
 		"key": "test_seed",
 	})
@@ -71,9 +71,9 @@ func TestSeedDoesNotExecuteDuplicates(t *testing.T) {
 	assert.NotNil(t, session)
 	db := session.DB(config.GetTestingDbName())
 	db.DropDatabase()
-	c := db.C(seeds.SeedingCollectionName)
-	c.Insert(seeds.SeedInfo{
+	c := db.C(migrations.SeedingCollectionName)
+	c.Insert(migrations.MigrationInfo{
 		Key: "test_seed",
 	})
-	seeds.Seed(mockedSeeder, db)
+	migrations.Apply(mockedSeeder, db)
 }
