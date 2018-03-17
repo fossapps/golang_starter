@@ -1,19 +1,18 @@
 package models
 
 import (
-	"crazy_nl_backend/helpers"
-
 	"github.com/globalsign/mgo/bson"
+	"github.com/globalsign/mgo"
 )
 
 type User struct {
-	ID          bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	ID          bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Email       string        `json:"email"`
 	Password    string        `json:"password"`
 	Permissions []string      `json:"permissions"`
 }
 
-func (User) FindUserByEmail(email string, db helpers.IDatabase) *User {
+func (User) FindUserByEmail(email string, db *mgo.Database) *User {
 	user := new(User)
 	db.C("users").Find(bson.M{
 		"email": email,
@@ -21,7 +20,7 @@ func (User) FindUserByEmail(email string, db helpers.IDatabase) *User {
 	return user
 }
 
-func (User) FindUserById(id string, db helpers.IDatabase) *User {
+func (User) FindUserById(id string, db *mgo.Database) *User {
 	user := new(User)
 	db.C("users").Find(bson.M{
 		"_id": bson.ObjectIdHex(id),

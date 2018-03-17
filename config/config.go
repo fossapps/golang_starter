@@ -35,8 +35,8 @@ func GetPushyToken() string {
 	return os.Getenv("PUSHY_TOKEN")
 }
 
-func GetTestingDbName() string {
-	return "integration_tests"
+func GetTestingDbConnection() string {
+	return os.Getenv("MGO_TEST_CONNECTION")
 }
 
 func GetApplicationConfig() ApplicationConfig {

@@ -1,28 +1,22 @@
-// +build integration
-
 package crazy_nl_backend_test
 
 import (
 	"testing"
-	"crazy_nl_backend/migrations"
+	"github.com/globalsign/mgo"
 	"crazy_nl_backend/config"
-	"crazy_nl_backend/helpers"
 	"github.com/stretchr/testify/assert"
-	"fmt"
+	"crazy_nl_backend/migrations"
 )
 
 func TestApplicationInit(t *testing.T) {
-	session, err := helpers.GetMongo(config.GetMongoConfig())
+	session, err := mgo.Dial(config.GetTestingDbConnection())
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
-	db := session.DB(config.GetTestingDbName())
+	db := session.DB(config.GetMongoConfig().DbName)
 	assert.NotNil(t, db)
 	defer session.Close()
-	db.DropDatabase()
-	migrations.ApplyAll(config.GetTestingDbName())
 	count, err := db.C(migrations.SeedingCollectionName).Count()
 	assert.Nil(t, err)
 	assert.NotNil(t, count)
-	fmt.Println(count)
 	assert.True(t, count > 0)
 }

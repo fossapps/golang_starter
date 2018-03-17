@@ -7,10 +7,11 @@ import (
 	"github.com/cyberhck/captain"
 	"crazy_nl_backend/helpers"
 	"github.com/cyberhck/pushy"
+	"github.com/globalsign/mgo"
 )
 
 type ImportDevices struct {
-	Db    helpers.IDatabase
+	Db    *mgo.Database
 	Redis helpers.IRedisClient
 	Pushy *pushy.Pushy
 }

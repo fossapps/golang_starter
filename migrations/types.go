@@ -1,15 +1,15 @@
 package migrations
 
 import (
-	"crazy_nl_backend/helpers"
 	"time"
+	"github.com/globalsign/mgo"
 )
 
 type IMigration interface {
 	GetKey() string
 	GetDescription() string
-	Apply(db helpers.IDatabase)
-	Remove(db helpers.IDatabase)
+	Apply(db *mgo.Database)
+	Remove(db *mgo.Database)
 }
 type MigrationInfo struct {
 	Key string `json:"key"`

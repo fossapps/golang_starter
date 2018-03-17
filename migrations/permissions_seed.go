@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"crazy_nl_backend/helpers"
+	"github.com/globalsign/mgo"
 )
 
 type PermissionSeeds struct{}
@@ -19,7 +19,7 @@ func (PermissionSeeds) GetDescription() string {
 	return "Create basic permission systems"
 }
 
-func (PermissionSeeds) Apply(db helpers.IDatabase) {
+func (PermissionSeeds) Apply(db *mgo.Database) {
 	permissions := []Permissions{
 		{
 			Key:         "User.Create",
@@ -60,6 +60,6 @@ func (PermissionSeeds) Apply(db helpers.IDatabase) {
 	}
 }
 
-func (PermissionSeeds) Remove(db helpers.IDatabase) {
+func (PermissionSeeds) Remove(db *mgo.Database) {
 
 }

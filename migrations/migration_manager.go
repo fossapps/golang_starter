@@ -2,25 +2,19 @@ package migrations
 
 import (
 	"fmt"
-	"crazy_nl_backend/helpers"
-	"crazy_nl_backend/config"
 	"time"
 	"github.com/globalsign/mgo/bson"
+	"github.com/globalsign/mgo"
 )
 
 const SeedingCollectionName = "migrations"
 
-func ApplyAll(dbName string) {
-	session, err := helpers.GetMongo(config.GetMongoConfig())
-	defer session.Close()
-	if err != nil {
-		panic(err)
-	}
+func ApplyAll(dbName string, session *mgo.Session) {
 	Apply(UserSeed{}, session.DB(dbName))
 	Apply(PermissionSeeds{}, session.DB(dbName))
 }
 
-func Apply(seeder IMigration, db helpers.IDatabase) {
+func Apply(seeder IMigration, db *mgo.Database) {
 	if !shouldRun(seeder, db) {
 		return
 	}
@@ -32,7 +26,7 @@ func Apply(seeder IMigration, db helpers.IDatabase) {
 	markApplied(seeder, db)
 }
 
-func shouldRun(seeder IMigration, db helpers.IDatabase) bool {
+func shouldRun(seeder IMigration, db *mgo.Database) bool {
 	key := seeder.GetKey()
 	collection := db.C(SeedingCollectionName)
 	result := new(MigrationInfo)
@@ -41,7 +35,8 @@ func shouldRun(seeder IMigration, db helpers.IDatabase) bool {
 	}).One(&result)
 	return result.Key != key
 }
-func markApplied(seeder IMigration, db helpers.IDatabase) {
+
+func markApplied(seeder IMigration, db *mgo.Database) {
 	info := MigrationInfo{
 		Key:seeder.GetKey(),
 		Description:seeder.GetDescription(),

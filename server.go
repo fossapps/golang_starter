@@ -12,11 +12,12 @@ import (
 	"time"
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/multiplay/go-slack/chat"
+	"github.com/globalsign/mgo"
 )
 
 type Server struct {
 	Logger logrus.Logger
-	Mongo  helpers.IMongoClient
+	Mongo  *mgo.Session
 	Redis  helpers.IRedisClient
 	Pushy  pushy.Pushy
 }
@@ -79,7 +80,7 @@ func getSlackHook() *lrhook.Hook {
 	return lrhook.New(cfg, config.GetApplicationConfig().SlackLoggingAppConfig)
 }
 
-func getMongo() helpers.IMongoClient {
+func getMongo() *mgo.Session {
 	mongo, err := helpers.GetMongo(config.GetMongoConfig())
 	if err != nil {
 		panic(err)

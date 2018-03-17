@@ -55,3 +55,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/multiplay/go-slack"
+
+[[constraint]]
+  name = "github.com/golang/mock"
+  branch = "master"

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"github.com/globalsign/mgo"
 )
 
 func QueueDeviceRegistration(registrationToken string, redisClient IRedisClient) error {
@@ -16,7 +17,7 @@ func QueueDeviceRegistration(registrationToken string, redisClient IRedisClient)
 	return nil
 }
 
-func RegisterDevice(registrationToken string, db IDatabase) {
+func RegisterDevice(registrationToken string, db *mgo.Database) {
 	// todo check if registration token already exists
 	db.C("devices").Insert(struct {
 		Token string `json:"token"`
