@@ -21,5 +21,5 @@ func RegisterDevice(registrationToken string, db *mgo.Database) {
 	// todo check if registration token already exists
 	db.C("devices").Insert(struct {
 		Token string `json:"token"`
-	}{Token:registrationToken})
+	}{Token: registrationToken})
 }

@@ -26,10 +26,15 @@ type NewRegistration struct {
 	Token string `json:"token"`
 }
 
+type RefreshTokenHandlerResponse struct {
+	Token string `json:"token"`
+}
+
 func (s *Server) LoginHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email, password, ok := r.BasicAuth()
 		if !ok {
+			s.Logger.Warn("basic auth not present")
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "unauthorized")
 			return
 		}
@@ -37,9 +42,9 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		defer session.Close()
 		db := session.DB(config.GetMongoConfig().DbName)
 		user := models.User{}.FindUserByEmail(email, db)
-		// s.Logger.Info(user.ID.String(), user.Email)
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
+			s.Logger.Warn("username and password wrong")
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "username/password mismatch")
 			return
 		}
@@ -72,7 +77,6 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 		session := s.Mongo.Clone()
 		db := session.DB(config.GetMongoConfig().DbName)
 		refreshToken := models.RefreshToken{}.FindOne(token, db)
-		s.Logger.Info(refreshToken)
 		if refreshToken == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "refresh token invalid")
 			return
@@ -80,7 +84,6 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 		user := models.User{}.FindUserById(refreshToken.User, db)
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
-			s.Logger.Error("user should not have been nil, refreshToken: ", refreshToken)
 			return
 		}
 		token, err := getJwtForUser(user)
@@ -89,9 +92,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "error generating token")
 			return
 		}
-		respond.With(w, r, http.StatusOK, struct {
-			Token string `json:"token"`
-		}{Token: token})
+		respond.With(w, r, http.StatusOK, RefreshTokenHandlerResponse{Token: token})
 	})
 }
 
@@ -112,7 +113,6 @@ func getJwtForUser(user *models.User) (string, error) {
 }
 
 func (registration *NewRegistration) OK () error {
-	// todo talk to pushy guys and see what's good value for this one.
 	if len(registration.Token) < 20 {
 		return errors.New("registration token invalid")
 	}
@@ -133,7 +133,6 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
 			return
 		}
-		// todo use a cron job to check if tokens are actually correct, then move them to db
 		respond.With(w, r, 200, struct {
 			Status string `json:"status"`
 		}{

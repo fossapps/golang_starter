@@ -17,6 +17,9 @@ migrate:
 test:
 	go test ./...
 
+test-cover:
+	go test -coverprofile=c.out ./... && go tool cover -html=c.out && rm c.out
+
 test-unit:
 	go test ./...
 

@@ -13,6 +13,9 @@ import (
 	"encoding/json"
 	"strings"
 	"crazy_nl_backend/models"
+	"github.com/sirupsen/logrus"
+	"github.com/globalsign/mgo/bson"
+	"fmt"
 )
 
 func TestMain(m *testing.M) {
@@ -101,4 +104,71 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	assert.Equal(t, res.RefreshToken, refreshToken.Token)
 	user := models.User{}.FindUserById(refreshToken.User, session.DB(config.GetMongoConfig().DbName))
 	assert.Equal(t, "admin@example.com", user.Email)
+}
+
+func TestServer_RefreshTokenHandlerRespondsWithStatusBadRequestIfNoAuthToken(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	server := crazy_nl_backend.Server{}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
+func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenInvalid(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.Header.Add("Authorization", "Bearer invalid_bearer_token")
+	server := crazy_nl_backend.Server{
+		Mongo:getSession(),
+		Logger:*logrus.New(),
+	}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
+}
+
+func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatusUnauthorized(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.Header.Add("Authorization", "Bearer random_token")
+	session := getSession()
+	session.DB(config.GetMongoConfig().DbName).DropDatabase()
+	session.DB(config.GetMongoConfig().DbName).C("refresh_tokens").Insert(models.RefreshToken{
+		User:"aaaaaaaaaaaaaaaaaaaaaaaa",
+		Token:"random_token",
+	})
+	server := crazy_nl_backend.Server{
+		Mongo:session,
+		Logger:*logrus.New(),
+	}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
+}
+
+func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.Header.Add("Authorization", "Bearer random_token")
+	session := getSession()
+	session.DB(config.GetMongoConfig().DbName).DropDatabase()
+	session.DB(config.GetMongoConfig().DbName).C("refresh_tokens").Insert(models.RefreshToken{
+		User:"bbbbbbbbbbbbbbbbbbbbbbbb",
+		Token:"random_token",
+	})
+	session.DB(config.GetMongoConfig().DbName).C("users").Insert(models.User{
+		ID:bson.ObjectIdHex("bbbbbbbbbbbbbbbbbbbbbbbb"),
+	})
+	server := crazy_nl_backend.Server{
+		Mongo:session,
+		Logger:*logrus.New(),
+	}
+	response := crazy_nl_backend.RefreshTokenHandlerResponse{}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	json.NewDecoder(responseRecorder.Body).Decode(&response)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	expect.NotNil(response.Token)
+	fmt.Print(response.Token)
+	assert.True(t, strings.Count(response.Token, ".") == 2)
 }
