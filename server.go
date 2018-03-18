@@ -3,7 +3,6 @@ package crazy_nl_backend
 import (
 	"net/http"
 	"github.com/sirupsen/logrus"
-	"encoding/json"
 	"gopkg.in/matryer/respond.v1"
 	"crazy_nl_backend/helpers"
 	"crazy_nl_backend/config"
@@ -32,11 +31,6 @@ func Init() {
 		server.Logger.Fatal(err)
 		panic(err)
 	}
-}
-
-func Decode(r *http.Request, data interface{}) {
-	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(&data)
 }
 
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {

@@ -15,6 +15,7 @@ import (
 	"gopkg.in/matryer/respond.v1"
 	"errors"
 	"crazy_nl_backend/helpers"
+	"encoding/json"
 )
 
 type LoginResponse struct {
@@ -143,7 +144,7 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 
 func decodeRegistrationToken(r *http.Request) (*NewRegistration, error) {
 	registration := new(NewRegistration)
-	Decode(r, &registration)
+	json.NewDecoder(r.Body).Decode(&registration)
 	err := registration.OK()
 
 	if err != nil {

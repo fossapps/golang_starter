@@ -1,3 +1,5 @@
+//go:generate mockgen -destination=./mocks/mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
+
 package crazy_nl_backend_test
 
 import (
@@ -15,7 +17,9 @@ import (
 	"crazy_nl_backend/models"
 	"github.com/sirupsen/logrus"
 	"github.com/globalsign/mgo/bson"
-	"fmt"
+	"bytes"
+	"crazy_nl_backend/mocks"
+	"github.com/golang/mock/gomock"
 )
 
 func TestMain(m *testing.M) {
@@ -114,6 +118,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusBadRequestIfNoAuthToken(t *
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
+
 func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenInvalid(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
@@ -169,6 +174,70 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 	expect.NotNil(response.Token)
-	fmt.Print(response.Token)
 	assert.True(t, strings.Count(response.Token, ".") == 2)
 }
+
+func TestServer_RegisterHandlerRespondsWithStatusBadRequestIfBodyDoesNotContainToken(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	server := crazy_nl_backend.Server{}
+	server.RegisterHandler()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
+
+func TestServer_RegisterHandlerRespondsWithStatusBadRequestIfTokenIsTooShort(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+		Token:"token",
+	})
+	request := httptest.NewRequest("POST", "/", buffer)
+	server := crazy_nl_backend.Server{}
+	server.RegisterHandler()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+	expect.Contains(responseRecorder.Body.String(), "registration token invalid")
+}
+
+func TestServer_RegisterHandlerRespondsWithStatusBadRequestTokenAlreadyExists(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	controller := gomock.NewController(t)
+	mockRedis := mocks.NewMockIRedisClient(controller)
+	buffer := new(bytes.Buffer)
+	token := "very_large_token_here"
+	mockRedis.EXPECT().SIsMember("registration", token).Times(1).Return(true, nil)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+		Token:token,
+	})
+	request := httptest.NewRequest("POST", "/", buffer)
+	server := crazy_nl_backend.Server{
+		Redis:mockRedis,
+	}
+	server.RegisterHandler()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+	expect.Contains(responseRecorder.Body.String(), "token already exists")
+}
+
+func TestServer_RegisterHandlerQueuesRegistrationIfTokenOk(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	controller := gomock.NewController(t)
+	mockRedis := mocks.NewMockIRedisClient(controller)
+	buffer := new(bytes.Buffer)
+	token := "very_large_token_here"
+	mockRedis.EXPECT().SIsMember("registration", token).Times(1).Return(false, nil)
+	mockRedis.EXPECT().SAdd("registration", token).Times(1).Return(int64(1), nil)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+		Token:token,
+	})
+	request := httptest.NewRequest("POST", "/", buffer)
+	server := crazy_nl_backend.Server{
+		Redis:mockRedis,
+	}
+	server.RegisterHandler()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	expect.Contains(responseRecorder.Body.String(), "registration pending")
+}
+
