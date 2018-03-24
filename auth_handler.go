@@ -120,6 +120,10 @@ func (registration *NewRegistration) OK () error {
 	return nil
 }
 
+type RegistrationResponse struct {
+	Status string `json:"status"`
+}
+
 func (s *Server) RegisterHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		registration, err := decodeRegistrationToken(r)
@@ -134,9 +138,7 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
 			return
 		}
-		respond.With(w, r, 200, struct {
-			Status string `json:"status"`
-		}{
+		respond.With(w, r, 200, RegistrationResponse {
 			Status: "registration pending",
 		})
 	})

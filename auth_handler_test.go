@@ -238,6 +238,8 @@ func TestServer_RegisterHandlerQueuesRegistrationIfTokenOk(t *testing.T) {
 	}
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	expect.Contains(responseRecorder.Body.String(), "registration pending")
+	result := &crazy_nl_backend.RegistrationResponse{}
+	json.NewDecoder(responseRecorder.Body).Decode(&result)
+	expect.Equal(result.Status, "registration pending")
 }
 
