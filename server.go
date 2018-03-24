@@ -1,17 +1,17 @@
 package crazy_nl_backend
 
 import (
-	"net/http"
+	"crazy_nl_backend/config"
+	"crazy_nl_backend/helpers"
+	"github.com/cyberhck/pushy"
+	"github.com/globalsign/mgo"
+	"github.com/multiplay/go-slack/chat"
+	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/helpers"
-	"crazy_nl_backend/config"
+	"net/http"
 	"strconv"
-	"github.com/cyberhck/pushy"
 	"time"
-	"github.com/multiplay/go-slack/lrhook"
-	"github.com/multiplay/go-slack/chat"
-	"github.com/globalsign/mgo"
 )
 
 type Server struct {
@@ -65,10 +65,10 @@ func getLogger() logrus.Logger {
 
 func getSlackHook() *lrhook.Hook {
 	cfg := lrhook.Config{
-		MinLevel:       logrus.WarnLevel,
+		MinLevel: logrus.WarnLevel,
 		Message: chat.Message{
-			Channel:"#general",
-			IconEmoji:":gopher:",
+			Channel:   "#general",
+			IconEmoji: ":gopher:",
 		},
 	}
 	return lrhook.New(cfg, config.GetApplicationConfig().SlackLoggingAppConfig)

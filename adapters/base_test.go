@@ -1,17 +1,17 @@
 package adapters_test
 
 import (
-	"net/http"
 	"crazy_nl_backend/adapters"
-	"net/http/httptest"
 	"fmt"
-	"testing"
-	"gopkg.in/matryer/respond.v1"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/matryer/respond.v1"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func ExampleAdapt() {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("handler function")
 	})
 	newHandler := adapters.Adapt(handler, getTestAdapter())
@@ -23,7 +23,7 @@ func ExampleAdapt() {
 }
 
 func TestAdaptLetsAdapterWrapHandlers(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		respond.With(w, r, http.StatusNotImplemented, nil)
 	})
 	newHandler := adapters.Adapt(handler, getTestAdapter())

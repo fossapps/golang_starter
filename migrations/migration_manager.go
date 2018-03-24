@@ -2,9 +2,9 @@ package migrations
 
 import (
 	"fmt"
-	"time"
-	"github.com/globalsign/mgo/bson"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
+	"time"
 )
 
 const SeedingCollectionName = "migrations"
@@ -38,9 +38,9 @@ func shouldRun(seeder IMigration, db *mgo.Database) bool {
 
 func markApplied(seeder IMigration, db *mgo.Database) {
 	info := MigrationInfo{
-		Key:seeder.GetKey(),
-		Description:seeder.GetDescription(),
-		AppliedAt:time.Now(),
+		Key:         seeder.GetKey(),
+		Description: seeder.GetDescription(),
+		AppliedAt:   time.Now(),
 	}
 	db.C(SeedingCollectionName).Insert(info)
 }

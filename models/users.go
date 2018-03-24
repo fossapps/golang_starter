@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 type User struct {

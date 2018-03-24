@@ -5,7 +5,7 @@ import (
 	//"crazy_nl_backend"
 )
 
-func Remember(key string, handler func() string ,duration time.Duration) string {
+func Remember(key string, handler func() string, duration time.Duration) string {
 	// check if the key is there.
 	// check if it's expired
 	// if everything is ok, return

@@ -3,23 +3,23 @@
 package crazy_nl_backend_test
 
 import (
-	"testing"
-	"net/http/httptest"
+	"bytes"
 	"crazy_nl_backend"
+	"crazy_nl_backend/config"
+	"crazy_nl_backend/migrations"
+	"crazy_nl_backend/mocks"
+	"crazy_nl_backend/models"
+	"encoding/json"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
+	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"crazy_nl_backend/migrations"
-	"github.com/globalsign/mgo"
-	"crazy_nl_backend/config"
+	"net/http/httptest"
 	"os"
-	"encoding/json"
 	"strings"
-	"crazy_nl_backend/models"
-	"github.com/sirupsen/logrus"
-	"github.com/globalsign/mgo/bson"
-	"bytes"
-	"crazy_nl_backend/mocks"
-	"github.com/golang/mock/gomock"
+	"testing"
 )
 
 func TestMain(m *testing.M) {
@@ -53,7 +53,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	session := getSession()
 	assert.NotNil(t, session)
 	server := crazy_nl_backend.Server{
-		Mongo:session,
+		Mongo: session,
 	}
 	server.LoginHandler()(responseRecorder, request)
 	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
@@ -66,7 +66,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	session := getSession()
 	assert.NotNil(t, session)
 	server := crazy_nl_backend.Server{
-		Mongo:session,
+		Mongo: session,
 	}
 	server.LoginHandler()(responseRecorder, request)
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
@@ -79,7 +79,7 @@ func TestServer_LoginHandlerRespondsWithTwoTokensOnCorrectCredentials(t *testing
 	session := getSession()
 	assert.NotNil(t, session)
 	server := crazy_nl_backend.Server{
-		Mongo:session,
+		Mongo: session,
 	}
 	server.LoginHandler()(responseRecorder, request)
 	res := new(crazy_nl_backend.LoginResponse)
@@ -88,7 +88,7 @@ func TestServer_LoginHandlerRespondsWithTwoTokensOnCorrectCredentials(t *testing
 	assert.NotNil(t, res.JWT)
 	// we always use at least 64 bit, it's hexadecimal, so 64 bits give 128 chars
 	assert.True(t, len(res.RefreshToken) >= 128)
-	assert.True(t, strings.Count(res.JWT, ".") ==2)
+	assert.True(t, strings.Count(res.JWT, ".") == 2)
 }
 
 func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
@@ -98,7 +98,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	session := getSession()
 	assert.NotNil(t, session)
 	server := crazy_nl_backend.Server{
-		Mongo:session,
+		Mongo: session,
 	}
 	server.LoginHandler()(responseRecorder, request)
 	res := new(crazy_nl_backend.LoginResponse)
@@ -125,8 +125,8 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer invalid_bearer_token")
 	server := crazy_nl_backend.Server{
-		Mongo:getSession(),
-		Logger:*logrus.New(),
+		Mongo:  getSession(),
+		Logger: *logrus.New(),
 	}
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
@@ -140,12 +140,12 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	session := getSession()
 	session.DB(config.GetMongoConfig().DbName).DropDatabase()
 	session.DB(config.GetMongoConfig().DbName).C("refresh_tokens").Insert(models.RefreshToken{
-		User:"aaaaaaaaaaaaaaaaaaaaaaaa",
-		Token:"random_token",
+		User:  "aaaaaaaaaaaaaaaaaaaaaaaa",
+		Token: "random_token",
 	})
 	server := crazy_nl_backend.Server{
-		Mongo:session,
-		Logger:*logrus.New(),
+		Mongo:  session,
+		Logger: *logrus.New(),
 	}
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
@@ -159,15 +159,15 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	session := getSession()
 	session.DB(config.GetMongoConfig().DbName).DropDatabase()
 	session.DB(config.GetMongoConfig().DbName).C("refresh_tokens").Insert(models.RefreshToken{
-		User:"bbbbbbbbbbbbbbbbbbbbbbbb",
-		Token:"random_token",
+		User:  "bbbbbbbbbbbbbbbbbbbbbbbb",
+		Token: "random_token",
 	})
 	session.DB(config.GetMongoConfig().DbName).C("users").Insert(models.User{
-		ID:bson.ObjectIdHex("bbbbbbbbbbbbbbbbbbbbbbbb"),
+		ID: bson.ObjectIdHex("bbbbbbbbbbbbbbbbbbbbbbbb"),
 	})
 	server := crazy_nl_backend.Server{
-		Mongo:session,
-		Logger:*logrus.New(),
+		Mongo:  session,
+		Logger: *logrus.New(),
 	}
 	response := crazy_nl_backend.RefreshTokenHandlerResponse{}
 	server.RefreshTokenHandler()(responseRecorder, request)
@@ -191,7 +191,7 @@ func TestServer_RegisterHandlerRespondsWithStatusBadRequestIfTokenIsTooShort(t *
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
-		Token:"token",
+		Token: "token",
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	server := crazy_nl_backend.Server{}
@@ -209,11 +209,11 @@ func TestServer_RegisterHandlerRespondsWithStatusBadRequestTokenAlreadyExists(t 
 	token := "very_large_token_here"
 	mockRedis.EXPECT().SIsMember("registration", token).Times(1).Return(true, nil)
 	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
-		Token:token,
+		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	server := crazy_nl_backend.Server{
-		Redis:mockRedis,
+		Redis: mockRedis,
 	}
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
@@ -230,11 +230,11 @@ func TestServer_RegisterHandlerQueuesRegistrationIfTokenOk(t *testing.T) {
 	mockRedis.EXPECT().SIsMember("registration", token).Times(1).Return(false, nil)
 	mockRedis.EXPECT().SAdd("registration", token).Times(1).Return(int64(1), nil)
 	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
-		Token:token,
+		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	server := crazy_nl_backend.Server{
-		Redis:mockRedis,
+		Redis: mockRedis,
 	}
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
@@ -242,4 +242,3 @@ func TestServer_RegisterHandlerQueuesRegistrationIfTokenOk(t *testing.T) {
 	json.NewDecoder(responseRecorder.Body).Decode(&result)
 	expect.Equal(result.Status, "registration pending")
 }
-

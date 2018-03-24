@@ -1,11 +1,11 @@
 package models_test
 
 import (
-	"testing"
-	"github.com/globalsign/mgo"
 	"crazy_nl_backend/config"
-	"github.com/stretchr/testify/assert"
 	"crazy_nl_backend/models"
+	"github.com/globalsign/mgo"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestRefreshToken_FindOne(t *testing.T) {
@@ -16,7 +16,7 @@ func TestRefreshToken_FindOne(t *testing.T) {
 	// first simply add one
 	session.DB(config.GetMongoConfig().DbName).C("refresh_tokens").Insert(
 		models.RefreshToken{
-			User: "some_id",
+			User:  "some_id",
 			Token: "my_token",
 		},
 	)

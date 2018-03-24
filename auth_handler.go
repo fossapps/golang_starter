@@ -10,12 +10,12 @@ import (
 	"crazy_nl_backend/config"
 	"crazy_nl_backend/models"
 
+	"crazy_nl_backend/helpers"
+	"encoding/json"
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
-	"errors"
-	"crazy_nl_backend/helpers"
-	"encoding/json"
 )
 
 type LoginResponse struct {
@@ -108,12 +108,12 @@ func getJwtForUser(user *models.User) (string, error) {
 		"id":          user.ID,
 		"email":       user.Email,
 		"permissions": user.Permissions,
-		"exp": time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
+		"exp":         time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
 	})
 	return token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
 }
 
-func (registration *NewRegistration) OK () error {
+func (registration *NewRegistration) OK() error {
 	if len(registration.Token) < 20 {
 		return errors.New("registration token invalid")
 	}
@@ -138,7 +138,7 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
 			return
 		}
-		respond.With(w, r, 200, RegistrationResponse {
+		respond.With(w, r, 200, RegistrationResponse{
 			Status: "registration pending",
 		})
 	})

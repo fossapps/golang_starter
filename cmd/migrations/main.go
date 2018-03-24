@@ -1,9 +1,9 @@
 package main
 
 import (
-	"crazy_nl_backend/migrations"
 	"crazy_nl_backend/config"
 	"crazy_nl_backend/helpers"
+	"crazy_nl_backend/migrations"
 )
 
 func main() {

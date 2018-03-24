@@ -1,11 +1,11 @@
 package crazy_nl_backend_test
 
 import (
-	"testing"
-	"github.com/globalsign/mgo"
 	"crazy_nl_backend/config"
-	"github.com/stretchr/testify/assert"
 	"crazy_nl_backend/migrations"
+	"github.com/globalsign/mgo"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestApplicationInit(t *testing.T) {

@@ -1,8 +1,8 @@
 package adapters
 
 import (
-	"net/http"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"time"
 )
 

@@ -3,14 +3,14 @@
 package migrations_test
 
 import (
-	"testing"
-	"crazy_nl_backend/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/globalsign/mgo"
 	"crazy_nl_backend/config"
-	"github.com/stretchr/testify/assert"
 	"crazy_nl_backend/migrations"
+	"crazy_nl_backend/mocks"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSeedCallsFirstTime(t *testing.T) {

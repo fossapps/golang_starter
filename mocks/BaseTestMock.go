@@ -1,12 +1,14 @@
 package mocks
 
 import (
+	"fmt"
 	"github.com/cyberhck/captain"
 	"time"
-	"fmt"
 )
+
 type ExampleMockJob struct {
 }
+
 func (ExampleMockJob) LockProvider() captain.LockProvider {
 	return nil
 }

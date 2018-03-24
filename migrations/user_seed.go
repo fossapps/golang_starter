@@ -3,8 +3,8 @@ package migrations
 import (
 	"crazy_nl_backend/models"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/globalsign/mgo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserSeed struct{}

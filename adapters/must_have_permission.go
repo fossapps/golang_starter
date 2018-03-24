@@ -1,20 +1,20 @@
 package adapters
 
 import (
-"errors"
-"net/http"
+	"errors"
+	"net/http"
 
-"crazy_nl_backend/config"
+	"crazy_nl_backend/config"
 
-"github.com/dgrijalva/jwt-go"
-"github.com/dgrijalva/jwt-go/request"
-"gopkg.in/matryer/respond.v1"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
+	"gopkg.in/matryer/respond.v1"
 )
 
 type Claims struct {
-	Email string `json:"email"`
-	ID string `json:"id"`
+	Email       string   `json:"email"`
+	ID          string   `json:"id"`
 	Permissions []string `json:"permissions"`
 	jwt.StandardClaims
 }

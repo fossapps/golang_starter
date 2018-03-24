@@ -1,8 +1,8 @@
 package migrations
 
 import (
-	"time"
 	"github.com/globalsign/mgo"
+	"time"
 )
 
 type IMigration interface {
@@ -12,7 +12,7 @@ type IMigration interface {
 	Remove(db *mgo.Database)
 }
 type MigrationInfo struct {
-	Key string `json:"key"`
-	Description string `json:"description"`
-	AppliedAt time.Time `json:"applied_at"`
+	Key         string    `json:"key"`
+	Description string    `json:"description"`
+	AppliedAt   time.Time `json:"applied_at"`
 }

@@ -1,11 +1,11 @@
 package workers_test
 
 import (
-	"testing"
-	"github.com/golang/mock/gomock"
 	"crazy_nl_backend/mocks"
 	"crazy_nl_backend/workers"
 	"github.com/cyberhck/captain"
+	"github.com/golang/mock/gomock"
+	"testing"
 )
 
 func TestRunDoesNotCallAnythingIfItShouldNotRun(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cyberhck/captain"
 	"crazy_nl_backend/helpers"
+	"github.com/cyberhck/captain"
 	"github.com/cyberhck/pushy"
 	"github.com/globalsign/mgo"
 )

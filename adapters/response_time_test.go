@@ -1,12 +1,12 @@
 package adapters_test
 
 import (
-	"testing"
+	"crazy_nl_backend/adapters"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"crazy_nl_backend/adapters"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 )
 
 func TestResponseTimeTakesInLoggerReturnsAnAdapter(t *testing.T) {
@@ -29,7 +29,7 @@ func TestResponseTimeLogsResponseTime(t *testing.T) {
 	loggerOutput := httptest.NewRecorder()
 	logger.Out = loggerOutput
 	adapter := adapters.ResponseTime(*logger)
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){})
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	newHandler := adapter(handler)
 	newHandler(httptest.NewRecorder(), nil)
 	assert.Contains(t, loggerOutput.Body.String(), "response in")

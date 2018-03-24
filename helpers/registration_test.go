@@ -3,11 +3,11 @@
 package helpers_test
 
 import (
-	"testing"
 	"crazy_nl_backend/helpers"
-	"github.com/stretchr/testify/assert"
-	"github.com/golang/mock/gomock"
 	"crazy_nl_backend/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestQueueDeviceRegistrationReturnsErrorIfTokenAlreadyExists(t *testing.T) {
@@ -29,5 +29,5 @@ func TestQueueDeviceRegistrationReturnsNoErrorAndAddsToClientIfNotAlreadyPresent
 }
 
 func TestRegisterDevice(t *testing.T) {
-	
+
 }

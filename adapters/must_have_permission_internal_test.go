@@ -1,8 +1,8 @@
 package adapters
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestContains(t *testing.T) {

@@ -1,9 +1,9 @@
 package config
 
 import (
-	"time"
 	"os"
 	"strconv"
+	"time"
 )
 
 func GetRedisConfig() *RedisConfig {

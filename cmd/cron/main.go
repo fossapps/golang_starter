@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 
-	"crazy_nl_backend/workers"
-	"crazy_nl_backend/helpers"
 	"crazy_nl_backend/config"
+	"crazy_nl_backend/helpers"
+	"crazy_nl_backend/workers"
 	"github.com/cyberhck/pushy"
 	"time"
 )
