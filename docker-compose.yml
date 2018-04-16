@@ -5,11 +5,6 @@ services:
     container_name: mongo
     ports:
       - 1000:27017
-  test-db:
-    image: mongo
-    container_name: mongo_test
-    ports:
-      - 1001:27017
   db-gui:
     image: mrvautin/adminmongo
     ports:

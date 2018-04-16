@@ -5,9 +5,10 @@ package helpers_test
 import (
 	"crazy_nl_backend/helpers"
 	"crazy_nl_backend/mocks"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestQueueDeviceRegistrationReturnsErrorIfTokenAlreadyExists(t *testing.T) {

@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"crazy_nl_backend/models"
+	"crazy_nl_backend/db"
 	"fmt"
+
 	"github.com/globalsign/mgo"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserSeed struct{}
@@ -17,14 +17,13 @@ func (UserSeed) GetDescription() string {
 	return "Create default users"
 }
 
-func (UserSeed) Apply(db *mgo.Database) {
-	hash, _ := bcrypt.GenerateFromPassword([]byte("admin1234"), bcrypt.DefaultCost)
-	admin := models.User{
+func (UserSeed) Apply(dbLayer db.Db) {
+	admin := db.User{
 		Email:       "admin@example.com",
-		Password:    string(hash),
+		Password:    "admin1234",
 		Permissions: []string{"sudo"},
 	}
-	err := db.C("users").Insert(admin)
+	err := dbLayer.Users().Create(admin)
 	if err != nil {
 		fmt.Println(err)
 	}

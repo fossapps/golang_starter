@@ -2,17 +2,15 @@ package crazy_nl_backend
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"crazy_nl_backend/config"
-	"crazy_nl_backend/models"
+	"crazy_nl_backend/db"
 
-	"crazy_nl_backend/helpers"
-	"encoding/json"
-	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
@@ -39,10 +37,9 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "unauthorized")
 			return
 		}
-		session := s.Mongo.Clone()
-		defer session.Close()
-		db := session.DB(config.GetMongoConfig().DbName)
-		user := models.User{}.FindUserByEmail(email, db)
+		dbLayer := s.Db.Clone()
+		defer dbLayer.Close()
+		user := dbLayer.Users().FindByEmail(email)
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
 			s.Logger.Warn("username and password wrong")
@@ -60,9 +57,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 			JWT:          jwtToken,
 			RefreshToken: refreshToken,
 		}
-		db.C("refresh_tokens").Insert(models.RefreshToken{
-			Token: res.RefreshToken,
-			User:  user.ID.Hex()})
+		dbLayer.RefreshTokens().Add(res.RefreshToken, user.ID.Hex())
 		respond.With(w, r, http.StatusOK, res)
 	})
 }
@@ -75,14 +70,14 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "token missing")
 			return
 		}
-		session := s.Mongo.Clone()
-		db := session.DB(config.GetMongoConfig().DbName)
-		refreshToken := models.RefreshToken{}.FindOne(token, db)
+		dbLayer := s.Db.Clone()
+		defer dbLayer.Close()
+		refreshToken := dbLayer.RefreshTokens().FindOne(token)
 		if refreshToken == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "refresh token invalid")
 			return
 		}
-		user := models.User{}.FindUserById(refreshToken.User, db)
+		user := dbLayer.Users().FindById(refreshToken.User)
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
 			return
@@ -103,7 +98,7 @@ func getRefreshToken(length int) string {
 	return fmt.Sprintf("%x", b)
 }
 
-func getJwtForUser(user *models.User) (string, error) {
+func getJwtForUser(user *db.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"id":          user.ID,
 		"email":       user.Email,
@@ -113,11 +108,11 @@ func getJwtForUser(user *models.User) (string, error) {
 	return token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
 }
 
-func (registration *NewRegistration) OK() error {
+func (registration *NewRegistration) OK() bool {
 	if len(registration.Token) < 20 {
-		return errors.New("registration token invalid")
+		return false
 	}
-	return nil
+	return true
 }
 
 type RegistrationResponse struct {
@@ -126,32 +121,30 @@ type RegistrationResponse struct {
 
 func (s *Server) RegisterHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		registration, err := decodeRegistrationToken(r)
+		registration := new(NewRegistration)
+		err := json.NewDecoder(r.Body).Decode(&registration)
 		if err != nil {
-			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid request")
+			return
+		}
+		if !registration.OK() {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid token")
 			return
 		}
 
-		err = helpers.QueueDeviceRegistration(registration.Token, s.Redis)
+		// save to mongodb
+		if s.Db.Devices().Exists(registration.Token) {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "already registered")
+			return
+		}
+		err = s.Db.Devices().Register(registration.Token)
 
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
 			return
 		}
 		respond.With(w, r, 200, RegistrationResponse{
-			Status: "registration pending",
+			Status: "success",
 		})
 	})
-}
-
-func decodeRegistrationToken(r *http.Request) (*NewRegistration, error) {
-	registration := new(NewRegistration)
-	json.NewDecoder(r.Body).Decode(&registration)
-	err := registration.OK()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return registration, nil
 }

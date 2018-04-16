@@ -2,45 +2,23 @@ package migrations
 
 import (
 	"fmt"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
-	"time"
+
+	"crazy_nl_backend/db"
 )
 
-const SeedingCollectionName = "migrations"
-
-func ApplyAll(dbName string, session *mgo.Session) {
-	Apply(UserSeed{}, session.DB(dbName))
-	Apply(PermissionSeeds{}, session.DB(dbName))
+func ApplyAll(dbLayer db.Db) {
+	Apply(UserSeed{}, dbLayer)
+	Apply(PermissionSeeds{}, dbLayer)
 }
 
-func Apply(seeder IMigration, db *mgo.Database) {
-	if !shouldRun(seeder, db) {
+func Apply(seeder IMigration, dbLayer db.Db) {
+	if !dbLayer.Migrations().ShouldRun(seeder.GetKey()) {
 		return
 	}
 	key := seeder.GetKey()
 	description := seeder.GetDescription()
 	fmt.Printf("applying migration file: %s\n", key)
 	fmt.Println(description)
-	seeder.Apply(db)
-	markApplied(seeder, db)
-}
-
-func shouldRun(seeder IMigration, db *mgo.Database) bool {
-	key := seeder.GetKey()
-	collection := db.C(SeedingCollectionName)
-	result := new(MigrationInfo)
-	collection.Find(bson.M{
-		"key": key,
-	}).One(&result)
-	return result.Key != key
-}
-
-func markApplied(seeder IMigration, db *mgo.Database) {
-	info := MigrationInfo{
-		Key:         seeder.GetKey(),
-		Description: seeder.GetDescription(),
-		AppliedAt:   time.Now(),
-	}
-	db.C(SeedingCollectionName).Insert(info)
+	seeder.Apply(dbLayer)
+	dbLayer.Migrations().MarkApplied(seeder.GetKey(), seeder.GetDescription())
 }

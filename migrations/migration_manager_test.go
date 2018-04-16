@@ -1,57 +1,49 @@
-//go:generate mockgen -destination=../mocks/mock_migration.go -package=mocks crazy_nl_backend/migrations IMigration
+//go:generate mockgen -destination=../mocks/mock_migration_implementation.go -package=mocks crazy_nl_backend/migrations IMigration
 
 package migrations_test
 
 import (
-	"crazy_nl_backend/config"
+	"testing"
+
 	"crazy_nl_backend/migrations"
 	"crazy_nl_backend/mocks"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestSeedCallsFirstTime(t *testing.T) {
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-	mockMigration := mocks.NewMockIMigration(controller)
-	mockMigration.EXPECT().GetKey().MinTimes(1).Return("key")
+	dbCtrl := gomock.NewController(t)
+	mockCtrl := gomock.NewController(t)
+	migrationCtrl := gomock.NewController(t)
+	mockMigrationManager := mocks.NewMockIMigrationManager(migrationCtrl)
+	mockDatabase := mocks.NewMockDb(dbCtrl)
+	mockMigration := mocks.NewMockIMigration(mockCtrl)
+	// setup migration behavior
+	mockMigration.EXPECT().GetKey().MinTimes(1).Return("sample_key")
 	mockMigration.EXPECT().GetDescription().MinTimes(1).Return("description")
-	mockMigration.EXPECT().Apply(gomock.Any()).Times(1)
-
-	session, err := mgo.Dial(config.GetTestingDbConnection())
-	assert.Nil(t, err)
-	assert.NotNil(t, session)
-	db := session.DB(config.GetMongoConfig().DbName)
-	db.C(migrations.SeedingCollectionName).DropCollection()
-	migrations.Apply(mockMigration, db)
-	c := db.C(migrations.SeedingCollectionName)
-	info := new(migrations.MigrationInfo)
-	query := c.Find(bson.M{
-		"key": "key",
-	})
-	query.One(&info)
-	assert.NotNil(t, info.Key)
-	assert.Equal(t, "key", info.Key)
+	mockMigration.EXPECT().Apply(gomock.Any())
+	// setup mockMigrationManager behavior
+	mockMigrationManager.EXPECT().ShouldRun("sample_key").Return(true)
+	mockMigrationManager.EXPECT().MarkApplied("sample_key", "description")
+	// setup database behavior
+	mockDatabase.EXPECT().Migrations().MinTimes(1).Return(mockMigrationManager)
+	migrations.Apply(mockMigration, mockDatabase)
 }
 
 func TestSeedDoesNotExecuteDuplicates(t *testing.T) {
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-	mockMigration := mocks.NewMockIMigration(controller)
-	mockMigration.EXPECT().GetKey().Times(1).Return("key")
-	mockMigration.EXPECT().GetDescription().Times(0)
+	dbCtrl := gomock.NewController(t)
+	mockCtrl := gomock.NewController(t)
+	migrationCtrl := gomock.NewController(t)
+	mockMigrationManager := mocks.NewMockIMigrationManager(migrationCtrl)
+	mockDatabase := mocks.NewMockDb(dbCtrl)
+	mockMigration := mocks.NewMockIMigration(mockCtrl)
+	// setup migration behavior
+	mockMigration.EXPECT().GetKey().MinTimes(1).Return("sample_key")
 	mockMigration.EXPECT().Apply(gomock.Any()).Times(0)
-	session, err := mgo.Dial(config.GetTestingDbConnection())
-	assert.Nil(t, err)
-	assert.NotNil(t, session)
-	db := session.DB(config.GetMongoConfig().DbName)
-	db.C(migrations.SeedingCollectionName).DropCollection()
-	c := db.C(migrations.SeedingCollectionName)
-	c.Insert(migrations.MigrationInfo{
-		Key: "key",
-	})
-	migrations.Apply(mockMigration, db)
+	// setup mockMigrationManager behavior
+	mockMigrationManager.EXPECT().ShouldRun("sample_key").Return(false)
+	mockMigrationManager.EXPECT().MarkApplied("sample_key", "description")
+	// setup database behavior
+	mockDatabase.EXPECT().Migrations().Times(1).Return(mockMigrationManager)
+	migrations.Apply(mockMigration, mockDatabase)
 }

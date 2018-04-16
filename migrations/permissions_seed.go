@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"crazy_nl_backend/db"
+
 	"github.com/globalsign/mgo"
 )
 
@@ -19,7 +21,7 @@ func (PermissionSeeds) GetDescription() string {
 	return "Create basic permission systems"
 }
 
-func (PermissionSeeds) Apply(db *mgo.Database) {
+func (PermissionSeeds) Apply(dbLayer db.Db) {
 	permissions := []Permissions{
 		{
 			Key:         "User.Create",
@@ -55,7 +57,7 @@ func (PermissionSeeds) Apply(db *mgo.Database) {
 		},
 	}
 	for _, permission := range permissions {
-		db.C("permissions").Insert(permission)
+		dbLayer.Permissions().Create(permission.Key, permission.Description)
 		// todo fires one query at a time, optimize for bulk inserts
 	}
 }

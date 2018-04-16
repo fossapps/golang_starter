@@ -2,31 +2,37 @@ package crazy_nl_backend
 
 import (
 	"crazy_nl_backend/config"
+	"crazy_nl_backend/db"
 	"crazy_nl_backend/helpers"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/cyberhck/pushy"
 	"github.com/globalsign/mgo"
+	"github.com/gorilla/handlers"
 	"github.com/multiplay/go-slack/chat"
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type Server struct {
 	Logger logrus.Logger
-	Mongo  *mgo.Session
+	Db     db.Db
 	Redis  helpers.IRedisClient
 	Pushy  pushy.Pushy
 }
 
 func Init() {
+	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Access-Control-Request-Headers", "Origin", "authorization"})
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 	server := createServer()
 	defer server.cleanup()
 	router := NewRouter(server)
 	server.Logger.Info("Attempting to listen on port " + strconv.Itoa(config.GetApiPort()))
-	err := http.ListenAndServe(":"+strconv.Itoa(config.GetApiPort()), router)
+	err := http.ListenAndServe(":"+strconv.Itoa(config.GetApiPort()), handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
 	if err != nil {
 		server.Logger.Fatal(err)
 		panic(err)
@@ -43,10 +49,11 @@ func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCod
 }
 
 func createServer() Server {
-	db := getMongo()
+	session := getMongo()
+	dbLayer := db.GetDbImplementation(session)
 	return Server{
 		Logger: getLogger(),
-		Mongo:  db,
+		Db:     dbLayer,
 		Redis:  *getRedis(),
 		Pushy:  getPushy(),
 	}
@@ -75,7 +82,7 @@ func getSlackHook() *lrhook.Hook {
 }
 
 func getMongo() *mgo.Session {
-	mongo, err := helpers.GetMongo(config.GetMongoConfig())
+	mongo, err := mgo.Dial(config.GetMongoConfig().Connection)
 	if err != nil {
 		panic(err)
 	}

@@ -3,12 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-
-	"crazy_nl_backend/config"
-	"crazy_nl_backend/helpers"
-	"crazy_nl_backend/workers"
-	"github.com/cyberhck/pushy"
-	"time"
 )
 
 func main() {
@@ -18,26 +12,9 @@ func main() {
 	if *job == "" {
 		flag.Usage()
 	}
-	importDevices(*job)
+	sampleWorker(*job)
 }
 
-func importDevices(key string) {
-	redis, err := helpers.GetRedis()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	db, err := helpers.GetMongo(config.GetMongoConfig())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
-	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(10 * time.Second))
-	job := workers.ImportDevices{
-		Redis: redis,
-		Db:    db.DB(config.GetMongoConfig().DbName),
-		Pushy: sdk,
-	}
-	workers.Run(key, job)
+func sampleWorker(key string) {
+	fmt.Println("listen for key and act accordingly")
 }

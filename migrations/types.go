@@ -1,18 +1,14 @@
 package migrations
 
 import (
+	"crazy_nl_backend/db"
+
 	"github.com/globalsign/mgo"
-	"time"
 )
 
 type IMigration interface {
 	GetKey() string
 	GetDescription() string
-	Apply(db *mgo.Database)
+	Apply(dbLayer db.Db)
 	Remove(db *mgo.Database)
-}
-type MigrationInfo struct {
-	Key         string    `json:"key"`
-	Description string    `json:"description"`
-	AppliedAt   time.Time `json:"applied_at"`
 }
