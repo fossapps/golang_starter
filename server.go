@@ -23,6 +23,9 @@ type Server struct {
 	Redis  helpers.IRedisClient
 	Pushy  pushy.IPushyClient
 }
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
 
 func Init() {
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Access-Control-Request-Headers", "Origin", "authorization"})
@@ -40,9 +43,7 @@ func Init() {
 }
 
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	respond.With(w, r, statusCode, struct {
-		Message string `json:"message"`
-	}{
+	respond.With(w, r, statusCode, ErrorResponse{
 		Message: message,
 	})
 	return

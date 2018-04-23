@@ -1,8 +1,9 @@
 package crazy_nl_backend
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+
 	"gopkg.in/matryer/respond.v1"
 )
 
@@ -42,10 +43,10 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 		err = s.Db.Devices().Register(registration.Token)
 
 		if err != nil {
-			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
+			s.ErrorResponse(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
-		respond.With(w, r, 200, RegistrationResponse{
+		respond.With(w, r, http.StatusOK, RegistrationResponse{
 			Status: "success",
 		})
 	})
