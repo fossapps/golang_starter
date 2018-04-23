@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/cyberhck/pushy"
   packages = ["."]
-  revision = "9fe20b1b675b4edb282e76ed8398fb5543b2db26"
+  revision = "2876ac0ba4c4e9cff5b4aef951edce1f2c73e72c"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -146,6 +146,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cdaf99b9da1554b1a4d835d9efd4fda031b9f9ca410b72ede235af5cfb3d25e5"
+  inputs-digest = "c5e7add8d48ccf1ee167972ac9c00561ff1377e55723f9dff0dda1037e50962b"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -21,7 +21,7 @@ type Server struct {
 	Logger logrus.Logger
 	Db     db.Db
 	Redis  helpers.IRedisClient
-	Pushy  pushy.Pushy
+	Pushy  pushy.IPushyClient
 }
 
 func Init() {
@@ -97,10 +97,10 @@ func getRedis() *helpers.IRedisClient {
 	return &redis
 }
 
-func getPushy() pushy.Pushy {
+func getPushy() pushy.IPushyClient {
 	sdk := pushy.Create(config.GetPushyToken(), pushy.GetDefaultAPIEndpoint())
 	sdk.SetHTTPClient(pushy.GetDefaultHTTPClient(5 * time.Second))
-	return *sdk
+	return sdk
 }
 
 func (s *Server) cleanup() {

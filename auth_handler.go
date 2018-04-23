@@ -2,7 +2,6 @@ package crazy_nl_backend
 
 import (
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,10 +18,6 @@ import (
 type LoginResponse struct {
 	JWT          string `json:"jwt"`
 	RefreshToken string `json:"refresh_token"`
-}
-
-type NewRegistration struct {
-	Token string `json:"token"`
 }
 
 type RefreshTokenHandlerResponse struct {
@@ -106,45 +101,4 @@ func getJwtForUser(user *db.User) (string, error) {
 		"exp":         time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
 	})
 	return token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
-}
-
-func (registration *NewRegistration) OK() bool {
-	if len(registration.Token) < 20 {
-		return false
-	}
-	return true
-}
-
-type RegistrationResponse struct {
-	Status string `json:"status"`
-}
-
-func (s *Server) RegisterHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		registration := new(NewRegistration)
-		err := json.NewDecoder(r.Body).Decode(&registration)
-		if err != nil {
-			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid request")
-			return
-		}
-		if !registration.OK() {
-			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid token")
-			return
-		}
-
-		// save to mongodb
-		if s.Db.Devices().Exists(registration.Token) {
-			s.ErrorResponse(w, r, http.StatusBadRequest, "already registered")
-			return
-		}
-		err = s.Db.Devices().Register(registration.Token)
-
-		if err != nil {
-			s.ErrorResponse(w, r, http.StatusBadRequest, err.Error())
-			return
-		}
-		respond.With(w, r, 200, RegistrationResponse{
-			Status: "success",
-		})
-	})
 }
