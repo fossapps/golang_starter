@@ -2,113 +2,125 @@
 
 package crazy_nl_backend_test
 
-//import (
-//	"bytes"
-//	"crazy_nl_backend"
-//	"crazy_nl_backend/config"
-//	"crazy_nl_backend/migrations"
-//	"crazy_nl_backend/mocks"
-//	"encoding/json"
-//	"net/http"
-//	"net/http/httptest"
-//	"os"
-//	"strings"
-//	"testing"
-//
-//	"github.com/globalsign/mgo"
-//	"github.com/globalsign/mgo/bson"
-//	"github.com/golang/mock/gomock"
-//	"github.com/sirupsen/logrus"
-//	"github.com/stretchr/testify/assert"
-//)
-//
-//func TestMain(m *testing.M) {
-//	session, _ := mgo.Dial(config.GetTestingDbConnection())
-//	migrations.ApplyAll(config.GetMongoConfig().DbName, session)
-//	defer session.DB(config.GetMongoConfig().DbName).DropDatabase()
-//	result := m.Run()
-//	os.Exit(result)
-//}
-//
-//func getSession() *mgo.Session {
-//	session, err := mgo.Dial(config.GetTestingDbConnection())
-//	if err != nil {
-//		panic(err)
-//	}
-//	return session
-//}
-//
-//func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
-//	responseRecorder := httptest.NewRecorder()
-//	request := httptest.NewRequest("POST", "/", nil)
-//	server := crazy_nl_backend.Server{}
-//	server.LoginHandler()(responseRecorder, request)
-//	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
-//}
-//
-//func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T) {
-//	responseRecorder := httptest.NewRecorder()
-//	request := httptest.NewRequest("POST", "/", nil)
-//	request.SetBasicAuth("admin@example.com", "pass")
-//	session := getSession()
-//	assert.NotNil(t, session)
-//	server := crazy_nl_backend.Server{
-//		Mongo: session,
-//	}
-//	server.LoginHandler()(responseRecorder, request)
-//	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
-//}
-//
-//func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
-//	responseRecorder := httptest.NewRecorder()
-//	request := httptest.NewRequest("POST", "/", nil)
-//	request.SetBasicAuth("admin@example.com", "admin1234")
-//	session := getSession()
-//	assert.NotNil(t, session)
-//	server := crazy_nl_backend.Server{
-//		Mongo: session,
-//	}
-//	server.LoginHandler()(responseRecorder, request)
-//	assert.Equal(t, http.StatusOK, responseRecorder.Code)
-//}
-//
-//func TestServer_LoginHandlerRespondsWithTwoTokensOnCorrectCredentials(t *testing.T) {
-//	responseRecorder := httptest.NewRecorder()
-//	request := httptest.NewRequest("POST", "/", nil)
-//	request.SetBasicAuth("admin@example.com", "admin1234")
-//	session := getSession()
-//	assert.NotNil(t, session)
-//	server := crazy_nl_backend.Server{
-//		Mongo: session,
-//	}
-//	server.LoginHandler()(responseRecorder, request)
-//	res := new(crazy_nl_backend.LoginResponse)
-//	json.NewDecoder(responseRecorder.Body).Decode(&res)
-//	assert.NotNil(t, res.RefreshToken)
-//	assert.NotNil(t, res.JWT)
-//	// we always use at least 64 bit, it's hexadecimal, so 64 bits give 128 chars
-//	assert.True(t, len(res.RefreshToken) >= 128)
-//	assert.True(t, strings.Count(res.JWT, ".") == 2)
-//}
-//
-//func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
-//	responseRecorder := httptest.NewRecorder()
-//	request := httptest.NewRequest("POST", "/", nil)
-//	request.SetBasicAuth("admin@example.com", "admin1234")
-//	session := getSession()
-//	assert.NotNil(t, session)
-//	server := crazy_nl_backend.Server{
-//		Mongo: session,
-//	}
-//	server.LoginHandler()(responseRecorder, request)
-//	res := new(crazy_nl_backend.LoginResponse)
-//	json.NewDecoder(responseRecorder.Body).Decode(&res)
-//	refreshToken := models.RefreshToken{}.FindOne(res.RefreshToken, session.DB(config.GetMongoConfig().DbName))
-//	assert.NotNil(t, refreshToken.Token)
-//	assert.Equal(t, res.RefreshToken, refreshToken.Token)
-//	user := models.User{}.FindUserById(refreshToken.User, session.DB(config.GetMongoConfig().DbName))
-//	assert.Equal(t, "admin@example.com", user.Email)
-//}
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"crazy_nl_backend"
+	"crazy_nl_backend/db"
+	"crazy_nl_backend/mocks"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
+)
+
+func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	server := crazy_nl_backend.Server{}
+	server.LoginHandler()(responseRecorder, request)
+	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
+}
+
+func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	mockUsersCtrl := gomock.NewController(t)
+	mockDb := mocks.NewMockDb(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager := mocks.NewMockIUserManager(mockUsersCtrl)
+	email := "admin@example.com"
+	pass := "pass"
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	user := db.User{Email: email, Password: string(hash)}
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
+	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.SetBasicAuth(email, "wrong_password")
+	server.LoginHandler()(responseRecorder, request)
+	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
+}
+
+func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	mockUsersCtrl := gomock.NewController(t)
+	refreshTokenCtrl := gomock.NewController(t)
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockRefreshTokenManager.EXPECT().Add(gomock.Any(), gomock.Any())
+	mockDb := mocks.NewMockDb(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
+	mockUserManager := mocks.NewMockIUserManager(mockUsersCtrl)
+	email := "admin@example.com"
+	pass := "pass"
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	user := db.User{Email: email, Password: string(hash)}
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
+	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.SetBasicAuth(email, pass)
+	server.LoginHandler()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	res := new(crazy_nl_backend.LoginResponse)
+	json.NewDecoder(responseRecorder.Body).Decode(&res)
+	expect.NotNil(res.RefreshToken)
+	expect.NotNil(res.JWT)
+	expect.True(len(res.RefreshToken) >= 128)
+	expect.True(strings.Count(res.JWT, ".") == 2)
+}
+
+func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	refreshTokenCtrl := gomock.NewController(t)
+	mockUsersCtrl := gomock.NewController(t)
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockDb := mocks.NewMockDb(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager := mocks.NewMockIUserManager(mockUsersCtrl)
+	email := "admin@example.com"
+	pass := "pass"
+	mockRefreshTokenManager.EXPECT().Add(gomock.Any(), gomock.Any())
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	user := db.User{Email: email, Password: string(hash)}
+	mockUserManager.EXPECT().FindByEmail(email).Return(&user)
+	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
+	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.SetBasicAuth(email, pass)
+	server.LoginHandler()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	res := new(crazy_nl_backend.LoginResponse)
+	json.NewDecoder(responseRecorder.Body).Decode(&res)
+	expect.NotNil(res.RefreshToken)
+	expect.NotNil(res.JWT)
+	expect.True(len(res.RefreshToken) >= 128)
+	expect.True(strings.Count(res.JWT, ".") == 2)
+}
+
 //
 //func TestServer_RefreshTokenHandlerRespondsWithStatusBadRequestIfNoAuthToken(t *testing.T) {
 //	expect := assert.New(t)

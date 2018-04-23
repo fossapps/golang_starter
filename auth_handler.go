@@ -43,6 +43,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		}
 		jwtToken, err := getJwtForUser(user)
 		if err != nil {
+			// todo can't test as of now, let's see.
 			s.Logger.Error("jwt error", err)
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "error generating token")
 			return
