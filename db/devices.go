@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"errors"
 )
 
 type Device struct {
@@ -20,6 +21,9 @@ type DeviceManager struct {
 }
 
 func (deviceManager DeviceManager) Register(token string) error {
+	if deviceManager.Exists(token) {
+		return errors.New("device already exists")
+	}
 	return deviceManager.db.C("devices").Insert(Device{
 		Token: token,
 	})
