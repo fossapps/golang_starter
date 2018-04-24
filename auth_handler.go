@@ -43,6 +43,8 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		}
 		jwtToken, err := getJwtForUser(user)
 		if err != nil {
+			// since it's a separate thing, maybe application init test should take care of it
+			// then we don't need to check if it had an error?
 			// todo can't test as of now, let's see.
 			s.Logger.Error("jwt error", err)
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "error generating token")
@@ -80,6 +82,9 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 		}
 		token, err := getJwtForUser(user)
 		if err != nil {
+			// since it's a separate thing, maybe application init test should take care of it
+			// then we don't need to check if it had an error?
+			// todo can't test as of now, let's see. (same comment in above handler, good idea to extract)
 			s.Logger.Error("token generation error: ", err)
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "error generating token")
 			return
