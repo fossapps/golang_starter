@@ -34,7 +34,12 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid token")
 			return
 		}
-
+		_, pushyErr, err := s.Pushy.DeviceInfo(registration.Token)
+		// todo maybe we want to use the cache.Remember thing? so later it'll be a breeze if we want to get data
+		if err != nil || pushyErr != nil {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid token")
+			return
+		}
 		// save to mongodb
 		if s.Db.Devices().Exists(registration.Token) {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "already registered")
