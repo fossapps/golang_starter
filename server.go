@@ -16,6 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
 )
+
 type ILogger interface {
 	Info(args ...interface{})
 	Fatal(args ...interface{})
