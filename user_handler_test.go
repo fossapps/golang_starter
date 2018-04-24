@@ -14,6 +14,7 @@ import (
 	"errors"
 )
 
+// region User.Create
 func TestServer_CreateUserReturnsBadRequestIfNoBody(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
@@ -116,3 +117,53 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	crazy_nl_backend.Server{Db:dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusCreated, responseRecorder.Code)
 }
+// endregion
+
+// region User.List
+func TestServer_ListUsersReturnsInternalServerErrorIfDbError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	userCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	defer userCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockUserManager.EXPECT().List().AnyTimes().Return(nil, errors.New("db error"))
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/", nil)
+	crazy_nl_backend.Server{
+		Db: mockDb,
+	}.ListUsers()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
+	mockUsers := []db.User{
+		{Email:"mail@example.com", Permissions: []string{"sudo"}, Password: "test_password"},
+		{Email:"mail2@example.com", Permissions: []string{"sudo"}, Password: "test_password2"},
+	}
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	userCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	defer userCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockUserManager.EXPECT().List().AnyTimes().Return(mockUsers, nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/", nil)
+	crazy_nl_backend.Server{
+		Db: mockDb,
+	}.ListUsers()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	var resUsers []db.User = nil
+	json.NewDecoder(responseRecorder.Body).Decode(&resUsers)
+	expect.Equal(mockUsers, resUsers)
+}
+// endregion

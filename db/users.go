@@ -11,6 +11,7 @@ type IUserManager interface {
 	FindByEmail(email string) *User
 	FindById(id string) *User
 	Create(user User) error
+	List() ([]User, error)
 }
 
 // User is representation of a user
@@ -55,6 +56,12 @@ func (dbLayer UserLayer) Create(user User) error {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
 	return dbLayer.db.C("users").Insert(user)
+}
+
+func (dbLayer UserLayer) List() ([]User, error) {
+	var users []User = nil
+	err := dbLayer.db.C("users").Find(nil).All(&users)
+	return users, err
 }
 
 // GetUserManager returns implementation of IUserManager

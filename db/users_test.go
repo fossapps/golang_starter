@@ -76,6 +76,28 @@ func TestUserLayer_FindById(t *testing.T) {
 	expect.Equal(email, user.Email)
 }
 
+func TestUserLayer_List(t *testing.T) {
+	mockUsers := []db.User{
+		{Email:"mail@example.com", Permissions: []string{"sudo"}, Password: "test_password"},
+		{Email:"mail2@example.com", Permissions: []string{"sudo"}, Password: "test_password2"},
+	}
+	expect := assert.New(t)
+	session, err := mgo.Dial(config.GetMongoConfig().Connection)
+	expect.Nil(err)
+	database := session.DB(config.GetTestingDbName())
+	defer database.DropDatabase()
+	userManager := db.GetUserManager(database)
+	userManager.Create(mockUsers[0])
+	userManager.Create(mockUsers[1])
+	users, err := userManager.List()
+	expect.Nil(err)
+	expect.NotNil(users)
+	expect.Equal(mockUsers[0].Email, users[0].Email)
+	expect.Equal(mockUsers[0].Permissions, users[0].Permissions)
+	expect.Equal(mockUsers[1].Email, users[1].Email)
+	expect.Equal(mockUsers[1].Permissions, users[1].Permissions)
+}
+
 func TestUserLayer_CreateReturnsErrorIfEmailAlreadyExists(t *testing.T) {
 	t.Skip()
 }

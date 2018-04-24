@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"crazy_nl_backend/db"
+	"gopkg.in/matryer/respond.v1"
 )
 
 type NewUser struct {
@@ -49,5 +50,18 @@ func (s Server) CreateUser() http.HandlerFunc {
 			return
 		}
 		s.SuccessResponse(w, r, http.StatusCreated, "created")
+	})
+}
+
+func (s Server) ListUsers() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		database := s.Db.Clone()
+		defer database.Close()
+		users, err := database.Users().List()
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		respond.With(w, r, http.StatusOK, users)
 	})
 }

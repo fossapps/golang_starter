@@ -68,3 +68,16 @@ func (m *MockIUserManager) FindById(arg0 string) *db.User {
 func (mr *MockIUserManagerMockRecorder) FindById(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockIUserManager)(nil).FindById), arg0)
 }
+
+// List mocks base method
+func (m *MockIUserManager) List() ([]db.User, error) {
+	ret := m.ctrl.Call(m, "List")
+	ret0, _ := ret[0].([]db.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List
+func (mr *MockIUserManagerMockRecorder) List() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIUserManager)(nil).List))
+}
