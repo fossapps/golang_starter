@@ -78,7 +78,7 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
-	res := new(crazy_nl_backend.ErrorResponse)
+	res := new(crazy_nl_backend.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("already registered", res.Message)
 }
@@ -111,7 +111,7 @@ func TestServer_RegisterHandlerReturnsInternalServerIfDbError(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
-	res := new(crazy_nl_backend.ErrorResponse)
+	res := new(crazy_nl_backend.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("db error", res.Message)
 }
@@ -174,7 +174,7 @@ func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *tes
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
-	res := new(crazy_nl_backend.ErrorResponse)
+	res := new(crazy_nl_backend.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("invalid token", res.Message)
 }

@@ -35,7 +35,8 @@ type Server struct {
 	Pushy  pushy.IPushyClient
 }
 
-type ErrorResponse struct {
+type SimpleResponse struct {
+	Success bool `json:"success"`
 	Message string `json:"message"`
 }
 
@@ -55,10 +56,18 @@ func Init() {
 }
 
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	respond.With(w, r, statusCode, ErrorResponse{
+	respond.With(w, r, statusCode, SimpleResponse{
+		Success:false,
 		Message: message,
 	})
 	return
+}
+
+func (s *Server) SuccessResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+	respond.With(w, r, statusCode, SimpleResponse{
+		Success:true,
+		Message: message,
+	})
 }
 
 func createServer() Server {
