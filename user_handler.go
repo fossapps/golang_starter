@@ -2,6 +2,9 @@ package crazy_nl_backend
 
 import (
 	"net/http"
+	"encoding/json"
+	"strings"
+	"crazy_nl_backend/db"
 )
 
 type NewUser struct {
@@ -11,20 +14,40 @@ type NewUser struct {
 }
 
 func (user NewUser) Ok() bool {
-	// check if email is in correct format
-	// check if password is strong enough
-	// don't need to check if permissions are correct, even if admin tries to add some random permission
-	// that permission won't do anything anyway
+	if !strings.Contains(user.Email, "@") || len(user.Password) < 6 {
+		return false
+	}
+	return true
 }
 
-func (s Server) Create() http.HandlerFunc {
+func (s Server) CreateUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := new(NewUser)
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
+			return
+		}
+		if !user.Ok() {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
+			return
+		}
 		database := s.Db.Clone()
 		defer database.Close()
-		// decode from body
-		// make sure the validation passes
-		// check if it already exists
-		// attempt to add to db
-		// handle error
+		if database.Users().FindByEmail(user.Email) != nil {
+			s.ErrorResponse(w, r, http.StatusConflict, "duplicate registration")
+			return
+		}
+		validUser := db.User{
+			Email:user.Email,
+			Password:user.Password,
+			Permissions:user.Permissions,
+		}
+		err = database.Users().Create(validUser)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		s.SuccessResponse(w, r, http.StatusCreated, "created")
 	})
 }
