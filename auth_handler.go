@@ -21,7 +21,7 @@ type LoginResponse struct {
 }
 
 type RefreshTokenHandlerResponse struct {
-	Token string `json:"token"`
+	JWT string `json:"jwt"`
 }
 
 func (s *Server) LoginHandler() http.HandlerFunc {
@@ -89,7 +89,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "error generating token")
 			return
 		}
-		respond.With(w, r, http.StatusOK, RefreshTokenHandlerResponse{Token: token})
+		respond.With(w, r, http.StatusOK, RefreshTokenHandlerResponse{JWT: token})
 	})
 }
 
