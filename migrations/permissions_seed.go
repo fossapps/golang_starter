@@ -52,6 +52,10 @@ func (PermissionSeeds) Apply(dbLayer db.Db) {
 			Description: "Permission to remove an existing notification",
 		},
 		{
+			Key:         "Permission.List",
+			Description: "Permission to list all the permission there exists",
+		},
+		{
 			Key:         "sudo",
 			Description: "Special Permission, this includes all permissions",
 		},
