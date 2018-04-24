@@ -16,13 +16,24 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
 )
+type ILogger interface {
+	Info(args ...interface{})
+	Fatal(args ...interface{})
+	Error(args ...interface{})
+	Debug(args ...interface{})
+	Warn(args ...interface{})
+	Warning(args ...interface{})
+	Print(args ...interface{})
+	Panic(args ...interface{})
+}
 
 type Server struct {
-	Logger logrus.Logger
+	Logger ILogger
 	Db     db.Db
 	Redis  helpers.IRedisClient
 	Pushy  pushy.IPushyClient
 }
+
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
@@ -60,7 +71,7 @@ func createServer() Server {
 	}
 }
 
-func getLogger() logrus.Logger {
+func getLogger() ILogger {
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.GetLogLevel())
 	logger.AddHook(getSlackHook())
@@ -68,7 +79,7 @@ func getLogger() logrus.Logger {
 		panic(err)
 	}
 	logger.SetLevel(level)
-	return *logger
+	return logger
 }
 
 func getSlackHook() *lrhook.Hook {

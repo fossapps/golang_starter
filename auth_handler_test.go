@@ -16,12 +16,20 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/sirupsen/logrus"
 )
 
+func getLogger() crazy_nl_backend.ILogger {
+	logger := logrus.New()
+	logger.Out = httptest.NewRecorder()
+	return logger
+}
 func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := crazy_nl_backend.Server{}
+	server := crazy_nl_backend.Server{
+		Logger: getLogger(),
+	}
 	server.LoginHandler()(responseRecorder, request)
 	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
 }
@@ -41,6 +49,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := crazy_nl_backend.Server{
+		Logger: getLogger(),
 		Db: mockDb,
 	}
 
