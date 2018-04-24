@@ -14,9 +14,9 @@ import (
 	"crazy_nl_backend/mocks"
 
 	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/sirupsen/logrus"
 )
 
 func getLogger() crazy_nl_backend.ILogger {
@@ -24,6 +24,7 @@ func getLogger() crazy_nl_backend.ILogger {
 	logger.Out = httptest.NewRecorder()
 	return logger
 }
+
 func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
@@ -50,7 +51,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := crazy_nl_backend.Server{
 		Logger: getLogger(),
-		Db: mockDb,
+		Db:     mockDb,
 	}
 
 	responseRecorder := httptest.NewRecorder()
@@ -157,7 +158,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
 	server := crazy_nl_backend.Server{
-		Db: mockDb,
+		Db:     mockDb,
 		Logger: getLogger(),
 	}
 	server.RefreshTokenHandler()(responseRecorder, request)
@@ -177,8 +178,8 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	mockUserManager.EXPECT().FindById("some_user").Times(1).Return(nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
-		Token:"auth_token",
-		User: "some_user",
+		Token: "auth_token",
+		User:  "some_user",
 	}
 	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
@@ -188,7 +189,7 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	request.Header.Add("Authorization", "Bearer auth_token")
 
 	server := crazy_nl_backend.Server{
-		Db: mockDb,
+		Db:     mockDb,
 		Logger: getLogger(),
 	}
 	server.RefreshTokenHandler()(responseRecorder, request)
@@ -206,15 +207,15 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
 	mockUser := &db.User{
-		ID: "random",
-		Email: "random",
+		ID:          "random",
+		Email:       "random",
 		Permissions: []string{"sudo"},
 	}
 	mockUserManager.EXPECT().FindById("some_user").Times(1).Return(mockUser)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
 		Token: "auth_token",
-		User: "some_user",
+		User:  "some_user",
 	}
 	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
@@ -224,7 +225,7 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	request.Header.Add("Authorization", "Bearer auth_token")
 
 	server := crazy_nl_backend.Server{
-		Db: mockDb,
+		Db:     mockDb,
 		Logger: getLogger(),
 	}
 	server.RefreshTokenHandler()(responseRecorder, request)

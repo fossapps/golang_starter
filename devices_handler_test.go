@@ -19,7 +19,7 @@ import (
 	"crazy_nl_backend"
 )
 
-func TestServer_RegisterHandlerReturnsInvalidRequestIfJsonInvalid(t *testing.T) {
+func TestServer_RegisterHandlerReturnsBadRequestRequestIfJsonInvalid(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
@@ -38,7 +38,7 @@ func TestServer_RegisterHandlerReturnsInvalidRequestIfJsonInvalid(t *testing.T) 
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
-func TestServer_RegisterHandlerReturnsInvalidTokenIfTokenIsInvalid(t *testing.T) {
+func TestServer_RegisterHandlerReturnsBadRequestIfTokenIsInvalid(t *testing.T) {
 	expect := assert.New(t)
 	server := crazy_nl_backend.Server{}
 	buffer := new(bytes.Buffer)
@@ -51,7 +51,7 @@ func TestServer_RegisterHandlerReturnsInvalidTokenIfTokenIsInvalid(t *testing.T)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
-func TestServer_RegisterHandlerIfExistsItReturnsBadRequest(t *testing.T) {
+func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
 	defer mockDbCtrl.Finish()
