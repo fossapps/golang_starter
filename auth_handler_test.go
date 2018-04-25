@@ -17,6 +17,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/dgrijalva/jwt-go"
+	"time"
+	"crazy_nl_backend/config"
+	"errors"
 )
 
 func getLogger() crazy_nl_backend.ILogger {
@@ -24,6 +28,8 @@ func getLogger() crazy_nl_backend.ILogger {
 	logger.Out = httptest.NewRecorder()
 	return logger
 }
+
+// region LoginHandler
 
 func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
@@ -96,6 +102,9 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	expect.True(strings.Count(res.JWT, ".") == 2)
 }
 
+// endregion
+
+// region RefreshTokenHandler
 func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
@@ -231,3 +240,85 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 }
+
+// endregion
+
+// region Sessions.List
+func TestServer_RefreshTokensListReturnsBadRequestWhenTokenWrong(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/", nil)
+	server := crazy_nl_backend.Server{}
+	server.RefreshTokensList()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
+func getJwtForUser(id string, email string, permission []string) string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"id":          id,
+		"email":       email,
+		"permissions": permission,
+		"exp":         time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
+	})
+	signedString, _ := token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
+	return signedString
+}
+
+func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userId := "some_random_id"
+	mockRefreshTokenManager.EXPECT().List(userId).Return(nil, errors.New("dbError"))
+	mockDb.EXPECT().RefreshTokens().AnyTimes().Return(mockRefreshTokenManager)
+	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
+	// that's valid jwt
+	mockRequest := httptest.NewRequest("GET", "/", nil)
+	mockRequest.Header.Add("Authorization", "Bearer " + token)
+	responseRecorder := httptest.NewRecorder()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	server.RefreshTokensList()(responseRecorder, mockRequest)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userId := "some_random_id"
+	refreshTokens := []db.RefreshToken{
+		{Token: "token1", User: "some_random_id"},
+		{Token: "token2", User: "some_random_id"},
+	}
+	// get list and return
+	mockRefreshTokenManager.EXPECT().List(userId).Return(refreshTokens, nil)
+	mockDb.EXPECT().RefreshTokens().AnyTimes().Return(mockRefreshTokenManager)
+	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
+	// that's valid jwt
+	mockRequest := httptest.NewRequest("GET", "/", nil)
+	mockRequest.Header.Add("Authorization", "Bearer " + token)
+	responseRecorder := httptest.NewRecorder()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	server.RefreshTokensList()(responseRecorder, mockRequest)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	var responseTokens []db.RefreshToken = nil
+	json.NewDecoder(responseRecorder.Body).Decode(&responseTokens)
+	expect.Equal(refreshTokens, responseTokens)
+}
+
+// endregion

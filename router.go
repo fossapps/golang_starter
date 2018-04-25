@@ -52,6 +52,9 @@ func (r router) authResource() {
 
 	r.router.HandleFunc("/session/refresh", r.server.RefreshTokenHandler()).
 		Methods("POST")
+
+	// todo: make a middleware which requires for someone to be logged in (but no permission) and add it here.
+	r.router.HandleFunc("/session", r.server.RefreshTokensList()).Methods("GET")
 }
 
 func NewRouter(s Server) *mux.Router {
