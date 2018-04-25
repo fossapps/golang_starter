@@ -15,6 +15,7 @@ type RefreshToken struct {
 type IRefreshTokenManager interface {
 	FindOne(token string) *RefreshToken
 	Add(token string, user string)
+	List(user string) ([]RefreshToken, error)
 }
 
 type refreshTokenLayer struct {
@@ -22,7 +23,6 @@ type refreshTokenLayer struct {
 }
 
 // Add a refresh token for a user
-// todo finish implementation
 func (dbLayer refreshTokenLayer) Add(token string, user string) {
 	dbLayer.db.C("refresh_tokens").Insert(RefreshToken{
 		Token: token,
@@ -40,6 +40,14 @@ func (dbLayer refreshTokenLayer) FindOne(token string) *RefreshToken {
 		return nil
 	}
 	return refreshToken
+}
+
+func (dbLayer refreshTokenLayer) List(user string) ([]RefreshToken, error) {
+	var tokens []RefreshToken = nil
+	err := dbLayer.db.C("refresh_tokens").Find(bson.M{
+		"user": user,
+	}).All(&tokens)
+	return tokens, err
 }
 
 // GetRefreshTokenManager returns implementation of IRefreshTokenManager

@@ -54,3 +54,16 @@ func (m *MockIRefreshTokenManager) FindOne(arg0 string) *db.RefreshToken {
 func (mr *MockIRefreshTokenManagerMockRecorder) FindOne(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOne", reflect.TypeOf((*MockIRefreshTokenManager)(nil).FindOne), arg0)
 }
+
+// List mocks base method
+func (m *MockIRefreshTokenManager) List(arg0 string) ([]db.RefreshToken, error) {
+	ret := m.ctrl.Call(m, "List", arg0)
+	ret0, _ := ret[0].([]db.RefreshToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List
+func (mr *MockIRefreshTokenManagerMockRecorder) List(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIRefreshTokenManager)(nil).List), arg0)
+}
