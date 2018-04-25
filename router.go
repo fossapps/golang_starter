@@ -28,5 +28,13 @@ func NewRouter(s Server) *mux.Router {
 		"/users",
 		adapters.Adapt(s.CreateUser(), adapters.MustHavePermission(permissions.User.Create))).
 		Methods("PUT")
+
+	router.HandleFunc(
+		"/users", adapters.Adapt(s.ListUsers(),
+			adapters.MustHavePermission(permissions.User.List))).
+		Methods("GET")
+
+	router.Handle("/users/available", s.UserAvailability()).
+		Methods("POST")
 	return router
 }
