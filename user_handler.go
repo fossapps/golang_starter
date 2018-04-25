@@ -14,6 +14,14 @@ type NewUser struct {
 	Permissions []string `json:"permissions"`
 }
 
+type UserAvailabilityResponse struct {
+	Available bool `json:"available"`
+}
+
+type UserAvailabilityRequest struct {
+	Email string `json:"email"`
+}
+
 func (user NewUser) Ok() bool {
 	if !strings.Contains(user.Email, "@") || len(user.Password) < 6 {
 		return false
@@ -63,5 +71,22 @@ func (s Server) ListUsers() http.HandlerFunc {
 			return
 		}
 		respond.With(w, r, http.StatusOK, users)
+	})
+}
+
+func (s Server) UserAvailability() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestedUser := new(UserAvailabilityRequest)
+		err := json.NewDecoder(r.Body).Decode(&requestedUser)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "bad request")
+			return
+		}
+		database := s.Db.Clone()
+		defer database.Close()
+		user := database.Users().FindByEmail(requestedUser.Email)
+		respond.With(w, r, http.StatusOK, UserAvailabilityResponse{
+			Available: user == nil,
+		})
 	})
 }

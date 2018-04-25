@@ -167,3 +167,68 @@ func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 	expect.Equal(mockUsers, resUsers)
 }
 // endregion
+
+// region User.Availability
+func TestServer_UserAvailabilityRespondsWithBadRequestIfRequestInvalid(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/", nil)
+	crazy_nl_backend.Server{}.UserAvailability()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
+
+func TestServer_UserAvailabilityReturnsFalseIfUnavailable(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	email := "admin@example.com"
+	mockUser := db.User{
+		Email: email,
+	}
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(mockUser)
+	request := httptest.NewRequest("GET", "/", buffer)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(&mockUser)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+	crazy_nl_backend.Server{Db:mockDb}.UserAvailability()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	response := new(crazy_nl_backend.UserAvailabilityResponse)
+	json.NewDecoder(responseRecorder.Body).Decode(&response)
+	expect.False(response.Available)
+}
+
+func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	email := "admin@example.com"
+	mockUser := db.User{
+		Email: email,
+	}
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(mockUser)
+	request := httptest.NewRequest("GET", "/", buffer)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+	crazy_nl_backend.Server{Db:mockDb}.UserAvailability()(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	response := new(crazy_nl_backend.UserAvailabilityResponse)
+	json.NewDecoder(responseRecorder.Body).Decode(&response)
+	expect.True(response.Available)
+}
+
+// endregion
