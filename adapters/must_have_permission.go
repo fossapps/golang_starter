@@ -34,7 +34,7 @@ func MustHavePermission(permission string) Adapter {
 			// if user has sudo, skip permission checking
 			err := claims.Valid()
 			if parseErr != nil || err != nil || !token.Valid {
-				respond.With(w, r, http.StatusUnauthorized, struct {
+				respond.With(w, r, http.StatusForbidden, struct {
 					Message string `json:"message"`
 				}{
 					Message: "permission denied",
@@ -42,7 +42,7 @@ func MustHavePermission(permission string) Adapter {
 				return
 			}
 			if claims.Permissions[0] != "sudo" && !contains(claims.Permissions, permission) {
-				respond.With(w, r, http.StatusUnauthorized, struct {
+				respond.With(w, r, http.StatusForbidden, struct {
 					Message string `json:"message"`
 				}{
 					Message: "permission denied",

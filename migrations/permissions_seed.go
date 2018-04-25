@@ -36,6 +36,10 @@ func (PermissionSeeds) Apply(dbLayer db.Db) {
 			Description: "Permission to remove a user",
 		},
 		{
+			Key:         "User.List",
+			Description: "Permission to list all users",
+		},
+		{
 			Key:         "Metric.View",
 			Description: "Permission to view Metric data",
 		},

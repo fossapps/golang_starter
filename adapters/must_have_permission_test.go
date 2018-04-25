@@ -31,7 +31,7 @@ func TestMustHavePermissionRespondsWithStatusUnauthorized(t *testing.T) {
 	assert.NotNil(t, token)
 	req.Header.Add("Authorization", "Bearer "+token)
 	adapters.MustHavePermission("user.destroy")(handler)(responseRecorder, req)
-	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
+	assert.Equal(t, http.StatusForbidden, responseRecorder.Code)
 }
 
 func TestMustHavePermissionLetsHttpHandlerSetStatusCodeIfHavePermission(t *testing.T) {
@@ -56,7 +56,7 @@ func TestMustHavePermissionStopsInvalidJWT(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Add("Authorization", "Bearer "+"some.random.string")
 	adapters.MustHavePermission("user.create")(handler)(responseRecorder, req)
-	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
+	assert.Equal(t, http.StatusForbidden, responseRecorder.Code)
 }
 
 func TestMustHavePermissionLetsSudoPermissionThrough(t *testing.T) {
