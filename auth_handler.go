@@ -13,9 +13,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/dgrijalva/jwt-go/request"
-	"crazy_nl_backend/adapters"
-	"errors"
 )
 
 type LoginResponse struct {
@@ -98,10 +95,8 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 
 func (s *Server) RefreshTokensList() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var claims adapters.Claims
-		token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
-		err := claims.Valid()
-		if parseErr != nil || err != nil || !token.Valid {
+		claims, err := s.ReqHelper.GetJwtData(r)
+		if err != nil {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "error parsing token")
 			return
 		}
@@ -114,13 +109,6 @@ func (s *Server) RefreshTokensList() http.HandlerFunc {
 		}
 		respond.With(w, r, http.StatusOK, tokens)
 	})
-}
-
-func signingFunc(token *jwt.Token) (interface{}, error) {
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, errors.New(fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
-	}
-	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }
 
 func getRefreshToken(length int) string {

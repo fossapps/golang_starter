@@ -1,4 +1,5 @@
 //go:generate mockgen -destination=./mocks/mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
+//go:generate mockgen -destination=./mocks/mock_request_helper.go -package=mocks crazy_nl_backend IRequestHelper
 
 package crazy_nl_backend_test
 
@@ -21,6 +22,7 @@ import (
 	"time"
 	"crazy_nl_backend/config"
 	"errors"
+	"crazy_nl_backend/adapters"
 )
 
 func getLogger() crazy_nl_backend.ILogger {
@@ -245,10 +247,14 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 
 // region Sessions.List
 func TestServer_RefreshTokensListReturnsBadRequestWhenTokenWrong(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRequestHelper := mocks.NewMockIRequestHelper(ctrl)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Return(nil, errors.New("jwt error"))
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	server := crazy_nl_backend.Server{}
+	server := crazy_nl_backend.Server{ReqHelper: mockRequestHelper}
 	server.RefreshTokensList()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
@@ -269,11 +275,20 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	defer dbCtrl.Finish()
 	refreshTokenCtrl := gomock.NewController(t)
 	defer refreshTokenCtrl.Finish()
+	requestHelperCtrl := gomock.NewController(t)
+	defer requestHelperCtrl.Finish()
+	mockRequestHelper := mocks.NewMockIRequestHelper(requestHelperCtrl)
+	userId := "some_random_id"
+	claims := adapters.Claims{
+		ID:userId,
+		Email:"admin@example.com",
+		Permissions:[]string{"sudo"},
+	}
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Return(&claims, nil)
 	mockDb := mocks.NewMockDb(dbCtrl)
 	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
-	userId := "some_random_id"
 	mockRefreshTokenManager.EXPECT().List(userId).Return(nil, errors.New("dbError"))
 	mockDb.EXPECT().RefreshTokens().AnyTimes().Return(mockRefreshTokenManager)
 	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
@@ -283,6 +298,7 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	server := crazy_nl_backend.Server{
 		Db: mockDb,
+		ReqHelper: mockRequestHelper,
 	}
 	server.RefreshTokensList()(responseRecorder, mockRequest)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
@@ -295,10 +311,19 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	refreshTokenCtrl := gomock.NewController(t)
 	defer refreshTokenCtrl.Finish()
 	mockDb := mocks.NewMockDb(dbCtrl)
+	requestHelperCtrl := gomock.NewController(t)
+	defer requestHelperCtrl.Finish()
+	mockRequestHelper := mocks.NewMockIRequestHelper(requestHelperCtrl)
 	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	userId := "some_random_id"
+	claims := adapters.Claims{
+		ID:userId,
+		Email:"admin@example.com",
+		Permissions:[]string{"sudo"},
+	}
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Return(&claims, nil)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
-	userId := "some_random_id"
 	refreshTokens := []db.RefreshToken{
 		{Token: "token1", User: "some_random_id"},
 		{Token: "token2", User: "some_random_id"},
@@ -313,6 +338,7 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	server := crazy_nl_backend.Server{
 		Db: mockDb,
+		ReqHelper: mockRequestHelper,
 	}
 	server.RefreshTokensList()(responseRecorder, mockRequest)
 	expect.Equal(http.StatusOK, responseRecorder.Code)

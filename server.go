@@ -15,6 +15,11 @@ import (
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
+	"crazy_nl_backend/adapters"
+	"github.com/dgrijalva/jwt-go/request"
+	"errors"
+	"github.com/dgrijalva/jwt-go"
+	"fmt"
 )
 
 type ILogger interface {
@@ -33,6 +38,7 @@ type Server struct {
 	Db     db.Db
 	Redis  helpers.IRedisClient
 	Pushy  pushy.IPushyClient
+	ReqHelper IRequestHelper
 }
 
 type SimpleResponse struct {
@@ -73,11 +79,13 @@ func (s *Server) SuccessResponse(w http.ResponseWriter, r *http.Request, statusC
 func createServer() Server {
 	session := getMongo()
 	dbLayer := db.GetDbImplementation(session)
+	requestHelper := RequestHelper{}
 	return Server{
 		Logger: getLogger(),
 		Db:     dbLayer,
 		Redis:  *getRedis(),
 		Pushy:  getPushy(),
+		ReqHelper: requestHelper,
 	}
 }
 
@@ -127,4 +135,33 @@ func getPushy() pushy.IPushyClient {
 
 func (s *Server) cleanup() {
 	s.Redis.Close()
+}
+
+type RequestHelper struct {}
+
+func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
+	var claims adapters.Claims
+	token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
+	err := claims.Valid()
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+	return &claims, nil
+}
+
+type IRequestHelper interface {
+	GetJwtData(r *http.Request) (*adapters.Claims, error)
+}
+
+func signingFunc(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, errors.New(fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
+	}
+	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }
