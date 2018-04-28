@@ -43,6 +43,18 @@ func (mr *MockIRefreshTokenManagerMockRecorder) Add(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockIRefreshTokenManager)(nil).Add), arg0, arg1)
 }
 
+// Delete mocks base method
+func (m *MockIRefreshTokenManager) Delete(arg0 string) error {
+	ret := m.ctrl.Call(m, "Delete", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockIRefreshTokenManagerMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIRefreshTokenManager)(nil).Delete), arg0)
+}
+
 // FindOne mocks base method
 func (m *MockIRefreshTokenManager) FindOne(arg0 string) *db.RefreshToken {
 	ret := m.ctrl.Call(m, "FindOne", arg0)
