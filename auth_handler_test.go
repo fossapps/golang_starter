@@ -14,15 +14,18 @@ import (
 	"crazy_nl_backend/db"
 	"crazy_nl_backend/mocks"
 
+	"crazy_nl_backend/adapters"
+	"crazy_nl_backend/config"
+	"errors"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/globalsign/mgo"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/dgrijalva/jwt-go"
-	"time"
-	"crazy_nl_backend/config"
-	"errors"
-	"crazy_nl_backend/adapters"
 )
 
 func getLogger() crazy_nl_backend.ILogger {
@@ -280,9 +283,9 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	mockRequestHelper := mocks.NewMockIRequestHelper(requestHelperCtrl)
 	userId := "some_random_id"
 	claims := adapters.Claims{
-		ID:userId,
-		Email:"admin@example.com",
-		Permissions:[]string{"sudo"},
+		ID:          userId,
+		Email:       "admin@example.com",
+		Permissions: []string{"sudo"},
 	}
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Return(&claims, nil)
 	mockDb := mocks.NewMockDb(dbCtrl)
@@ -294,10 +297,10 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
 	// that's valid jwt
 	mockRequest := httptest.NewRequest("GET", "/", nil)
-	mockRequest.Header.Add("Authorization", "Bearer " + token)
+	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
 	server := crazy_nl_backend.Server{
-		Db: mockDb,
+		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
 	server.RefreshTokensList()(responseRecorder, mockRequest)
@@ -317,9 +320,9 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
 	userId := "some_random_id"
 	claims := adapters.Claims{
-		ID:userId,
-		Email:"admin@example.com",
-		Permissions:[]string{"sudo"},
+		ID:          userId,
+		Email:       "admin@example.com",
+		Permissions: []string{"sudo"},
 	}
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Return(&claims, nil)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
@@ -334,10 +337,10 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
 	// that's valid jwt
 	mockRequest := httptest.NewRequest("GET", "/", nil)
-	mockRequest.Header.Add("Authorization", "Bearer " + token)
+	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
 	server := crazy_nl_backend.Server{
-		Db: mockDb,
+		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
 	server.RefreshTokensList()(responseRecorder, mockRequest)
@@ -345,6 +348,85 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	var responseTokens []db.RefreshToken = nil
 	json.NewDecoder(responseRecorder.Body).Decode(&responseTokens)
 	expect.Equal(refreshTokens, responseTokens)
+}
+
+// endregion
+
+// region Sessions.Delete
+
+func TestServer_DeleteSessionReturnsNotFoundIfNoToken(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	requestHelperCtrl := gomock.NewController(t)
+	defer requestHelperCtrl.Finish()
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockRefreshTokenManager.EXPECT().Delete("token").Return(mgo.ErrNotFound)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router := mux.NewRouter()
+	router.HandleFunc("/session/{token}", server.DeleteSession())
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("DELETE", "/session/token", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusNotFound, responseRecorder.Code)
+}
+
+func TestServer_DeleteSessionReturnsInternalServerErrorIfDbError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	requestHelperCtrl := gomock.NewController(t)
+	defer requestHelperCtrl.Finish()
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockRefreshTokenManager.EXPECT().Delete("token").Return(errors.New("invalid query"))
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router := mux.NewRouter()
+	router.HandleFunc("/session/{token}", server.DeleteSession())
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("DELETE", "/session/token", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_DeleteSessionReturnsNoContent(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	requestHelperCtrl := gomock.NewController(t)
+	defer requestHelperCtrl.Finish()
+	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
+	mockRefreshTokenManager.EXPECT().Delete("token").Return(nil)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router := mux.NewRouter()
+	router.HandleFunc("/session/{token}", server.DeleteSession())
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("DELETE", "/session/token", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusNoContent, responseRecorder.Code)
 }
 
 // endregion

@@ -11,6 +11,8 @@ import (
 	"crazy_nl_backend/db"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/globalsign/mgo"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
 )
@@ -108,6 +110,22 @@ func (s *Server) RefreshTokensList() http.HandlerFunc {
 			return
 		}
 		respond.With(w, r, http.StatusOK, tokens)
+	})
+}
+
+func (s *Server) DeleteSession() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := mux.Vars(r)["token"]
+		err := s.Db.RefreshTokens().Delete(token)
+		if err != nil && err.Error() == mgo.ErrNotFound.Error() {
+			http.NotFound(w, r)
+			return
+		}
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "db error")
+			return
+		}
+		respond.With(w, r, http.StatusNoContent, nil)
 	})
 }
 

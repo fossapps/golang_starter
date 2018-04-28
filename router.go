@@ -5,9 +5,10 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
 type router struct {
 	router *mux.Router
-	perm Permissions
+	perm   Permissions
 	server Server
 }
 
@@ -55,6 +56,7 @@ func (r router) authResource() {
 
 	// todo: make a middleware which requires for someone to be logged in (but no permission) and add it here.
 	r.router.HandleFunc("/session", r.server.RefreshTokensList()).Methods("GET")
+	r.router.HandleFunc("/session/{token}", r.server.DeleteSession()).Methods("DELETE")
 }
 
 func NewRouter(s Server) *mux.Router {
