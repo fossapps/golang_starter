@@ -39,8 +39,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		user := dbLayer.Users().FindByEmail(email)
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
-			s.Logger.Warn("username and password wrong")
-			s.ErrorResponse(w, r, http.StatusUnauthorized, "username/password mismatch")
+			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
 		jwtToken, err := getJwtForUser(user)
