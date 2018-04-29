@@ -12,6 +12,7 @@ type IUserManager interface {
 	FindById(id string) *User
 	Create(user User) error
 	List() ([]User, error)
+	Edit(id string, user User) error
 }
 
 // User is representation of a user
@@ -58,10 +59,19 @@ func (dbLayer UserLayer) Create(user User) error {
 	return dbLayer.db.C("users").Insert(user)
 }
 
+// List users
 func (dbLayer UserLayer) List() ([]User, error) {
 	var users []User = nil
 	err := dbLayer.db.C("users").Find(nil).All(&users)
 	return users, err
+}
+
+// Edit a user by id
+func (dbLayer UserLayer) Edit(id string, user User) error {
+	// todo if there's password, it needs to be crypted as well.
+	return dbLayer.db.C("users").Update(bson.M{
+		"_id": bson.ObjectIdHex(id),
+	}, user)
 }
 
 // GetUserManager returns implementation of IUserManager

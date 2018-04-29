@@ -45,6 +45,18 @@ func (mr *MockIUserManagerMockRecorder) Create(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIUserManager)(nil).Create), arg0)
 }
 
+// Edit mocks base method
+func (m *MockIUserManager) Edit(arg0 string, arg1 db.User) error {
+	ret := m.ctrl.Call(m, "Edit", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Edit indicates an expected call of Edit
+func (mr *MockIUserManagerMockRecorder) Edit(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockIUserManager)(nil).Edit), arg0, arg1)
+}
+
 // FindByEmail mocks base method
 func (m *MockIUserManager) FindByEmail(arg0 string) *db.User {
 	ret := m.ctrl.Call(m, "FindByEmail", arg0)
