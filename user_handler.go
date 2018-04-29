@@ -1,10 +1,13 @@
 package crazy_nl_backend
 
 import (
-	"net/http"
-	"encoding/json"
-	"strings"
 	"crazy_nl_backend/db"
+	"encoding/json"
+	"net/http"
+	"strings"
+
+	"github.com/globalsign/mgo"
+	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
 )
 
@@ -23,7 +26,7 @@ type UserAvailabilityRequest struct {
 }
 
 func (user NewUser) Ok() bool {
-	if !strings.Contains(user.Email, "@") || len(user.Password) < 6 {
+	if !strings.Contains(user.Email, "@") || (len(user.Password) < 6 && user.Password != "") {
 		return false
 	}
 	return true
@@ -48,9 +51,9 @@ func (s Server) CreateUser() http.HandlerFunc {
 			return
 		}
 		validUser := db.User{
-			Email:user.Email,
-			Password:user.Password,
-			Permissions:user.Permissions,
+			Email:       user.Email,
+			Password:    user.Password,
+			Permissions: user.Permissions,
 		}
 		err = database.Users().Create(validUser)
 		if err != nil {
@@ -88,5 +91,37 @@ func (s Server) UserAvailability() http.HandlerFunc {
 		respond.With(w, r, http.StatusOK, UserAvailabilityResponse{
 			Available: user == nil,
 		})
+	})
+}
+
+func (s Server) EditUser() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId := mux.Vars(r)["user"]
+		user := s.Db.Users().FindById(userId)
+		if user == nil {
+			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
+			return
+		}
+		newUser := new(NewUser)
+		err := json.NewDecoder(r.Body).Decode(&newUser)
+		if err != nil || !newUser.Ok() {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
+			return
+		}
+		validUser := db.User{
+			Permissions: newUser.Permissions,
+			Email:       newUser.Email,
+			Password:    newUser.Password,
+		}
+		err = s.Db.Users().Edit(userId, validUser)
+		if err == mgo.ErrNotFound {
+			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
+			return
+		}
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
+		s.SuccessResponse(w, r, http.StatusOK, "user updated")
 	})
 }

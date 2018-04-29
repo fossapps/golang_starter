@@ -1,17 +1,20 @@
 package crazy_nl_backend_test
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
 	"bytes"
-	"encoding/json"
 	"crazy_nl_backend"
-	"net/http"
-	"github.com/golang/mock/gomock"
-	"crazy_nl_backend/mocks"
 	"crazy_nl_backend/db"
+	"crazy_nl_backend/mocks"
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/globalsign/mgo"
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 )
 
 // region User.Create
@@ -28,7 +31,7 @@ func TestServer_CreateUserReturnsBadRequestIfUserIsInvalid(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewUser{
-		Email: "invalid",
+		Email:    "invalid",
 		Password: "pass",
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
@@ -41,7 +44,7 @@ func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
 	mockUser := crazy_nl_backend.NewUser{
-		Email: "user@example.com",
+		Email:    "user@example.com",
 		Password: "password",
 	}
 	json.NewEncoder(buffer).Encode(mockUser)
@@ -54,14 +57,14 @@ func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T
 	defer dbCtrl.Finish()
 	userManager := mocks.NewMockIUserManager(userCtrl)
 	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(&db.User{
-		Email:mockUser.Email,
-		Password:mockUser.Password,
+		Email:    mockUser.Email,
+		Password: mockUser.Password,
 	})
 	dbManager := mocks.NewMockDb(dbCtrl)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	crazy_nl_backend.Server{Db:dbManager}.CreateUser()(responseRecorder, request)
+	crazy_nl_backend.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusConflict, responseRecorder.Code)
 }
 func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T) {
@@ -69,7 +72,7 @@ func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T)
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
 	mockUser := crazy_nl_backend.NewUser{
-		Email: "user@example.com",
+		Email:    "user@example.com",
 		Password: "password",
 	}
 	json.NewEncoder(buffer).Encode(mockUser)
@@ -87,7 +90,7 @@ func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	crazy_nl_backend.Server{Db:dbManager}.CreateUser()(responseRecorder, request)
+	crazy_nl_backend.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
 }
 
@@ -96,7 +99,7 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
 	mockUser := crazy_nl_backend.NewUser{
-		Email: "user@example.com",
+		Email:    "user@example.com",
 		Password: "password",
 	}
 	json.NewEncoder(buffer).Encode(mockUser)
@@ -114,9 +117,10 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	crazy_nl_backend.Server{Db:dbManager}.CreateUser()(responseRecorder, request)
+	crazy_nl_backend.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusCreated, responseRecorder.Code)
 }
+
 // endregion
 
 // region User.List
@@ -142,8 +146,8 @@ func TestServer_ListUsersReturnsInternalServerErrorIfDbError(t *testing.T) {
 
 func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 	mockUsers := []db.User{
-		{Email:"mail@example.com", Permissions: []string{"sudo"}, Password: "test_password"},
-		{Email:"mail2@example.com", Permissions: []string{"sudo"}, Password: "test_password2"},
+		{Email: "mail@example.com", Permissions: []string{"sudo"}, Password: "test_password"},
+		{Email: "mail2@example.com", Permissions: []string{"sudo"}, Password: "test_password2"},
 	}
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
@@ -166,6 +170,7 @@ func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 	json.NewDecoder(responseRecorder.Body).Decode(&resUsers)
 	expect.Equal(mockUsers, resUsers)
 }
+
 // endregion
 
 // region User.Availability
@@ -197,7 +202,7 @@ func TestServer_UserAvailabilityReturnsFalseIfUnavailable(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(&mockUser)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
-	crazy_nl_backend.Server{Db:mockDb}.UserAvailability()(responseRecorder, request)
+	crazy_nl_backend.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 	response := new(crazy_nl_backend.UserAvailabilityResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
@@ -224,11 +229,167 @@ func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
-	crazy_nl_backend.Server{Db:mockDb}.UserAvailability()(responseRecorder, request)
+	crazy_nl_backend.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 	response := new(crazy_nl_backend.UserAvailabilityResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
 	expect.True(response.Available)
+}
+
+// endregion
+
+// region User.Edit
+
+func TestServer_EditUserErrorIfUserDoesNotExist(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mocks.NewMockIUserManager(userCtrl)
+	mockUser.EXPECT().FindById("id").Return(nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusPreconditionFailed, responseRecorder.Code)
+}
+
+func TestServer_EditUserErrorIfUserIsInvalid(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mocks.NewMockIUserManager(userCtrl)
+	mockUser.EXPECT().FindById("id").Return(&db.User{
+		Email:       "mail@example.com",
+		Permissions: []string{"sudo"},
+	})
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewUser{
+		Email: "new_email.example.com",
+	})
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", buffer)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
+
+func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockUserManager.EXPECT().FindById("id").Return(&db.User{
+		Email:       "mail@example.com",
+		Permissions: []string{"sudo"},
+	})
+	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(mgo.ErrNotFound)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewUser{
+		Email: "new_email@example.com",
+	})
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", buffer)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusPreconditionFailed, responseRecorder.Code)
+}
+
+func TestServer_EditUserHandlesDbError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockUserManager.EXPECT().FindById("id").Return(&db.User{
+		Email:       "mail@example.com",
+		Permissions: []string{"sudo"},
+	})
+	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(errors.New("db error"))
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewUser{
+		Email: "new_email@example.com",
+	})
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", buffer)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUserManager := mocks.NewMockIUserManager(userCtrl)
+	mockUserManager.EXPECT().FindById("id").AnyTimes().Return(&db.User{
+		Email:       "mail@example.com",
+		Permissions: []string{"sudo"},
+	})
+	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewUser{
+		Email:    "new_email@example.com",
+		Password: "",
+	})
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", buffer)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
 }
 
 // endregion

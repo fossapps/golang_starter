@@ -38,6 +38,10 @@ func (r router) userResource() {
 
 	r.router.Handle("/users/available", r.server.UserAvailability()).
 		Methods("POST")
+	r.router.Handle(
+		"/users/{user}",
+		adapters.Adapt(r.server.EditUser(), adapters.MustHavePermission(r.perm.User.Edit))).
+		Methods("PUT")
 }
 
 func (r router) permissionsResource() {
