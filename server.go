@@ -52,9 +52,11 @@ func Init() {
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 	server := createServer()
 	defer server.cleanup()
-	router := NewRouter(server)
-	server.Logger.Info("Attempting to listen on port " + strconv.Itoa(config.GetApiPort()))
-	err := http.ListenAndServe(":"+strconv.Itoa(config.GetApiPort()), handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
+	router := adapters.DevMw(1000)(NewRouter(server))
+	port := strconv.Itoa(config.GetApiPort())
+	server.Logger.Info("Attempting to listen on port " + port)
+	err := http.
+		ListenAndServe(":" + port, handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
 	if err != nil {
 		server.Logger.Fatal(err)
 		panic(err)
