@@ -42,6 +42,7 @@ func (r router) userResource() {
 		"/users/{user}",
 		adapters.Adapt(r.server.EditUser(), adapters.MustHavePermission(r.perm.User.Edit))).
 		Methods("PUT")
+	r.router.Handle("/users/{user}", r.server.GetUser()).Methods("GET")
 }
 
 func (r router) permissionsResource() {

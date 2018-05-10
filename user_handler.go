@@ -125,3 +125,15 @@ func (s Server) EditUser() http.HandlerFunc {
 		s.SuccessResponse(w, r, http.StatusOK, "user updated")
 	})
 }
+
+func (s Server) GetUser() http.HandlerFunc {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["user"]
+		user := s.Db.Users().FindById(id)
+		if user == nil {
+			s.ErrorResponse(w, r, http.StatusNotFound, "not found");
+			return
+		}
+		respond.With(w, r, http.StatusOK, user)
+	})
+}

@@ -15,6 +15,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/globalsign/mgo/bson"
 )
 
 // region User.Create
@@ -392,4 +393,64 @@ func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 }
 
+// endregion
+
+// region User.Get
+
+func TestServer_UserGetReturnsStatusNotFoundWhenUserDoesNotExist(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mocks.NewMockIUserManager(userCtrl)
+	mockUser.EXPECT().FindById("id").Return(nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.GetUser()).Methods("GET")
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/users/id", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusNotFound, responseRecorder.Code)
+}
+
+func TestServer_GetUserReturnsUser(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mocks.NewMockDb(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mocks.NewMockIUserManager(userCtrl)
+	dbUser := db.User{
+		ID: bson.NewObjectId(),
+		Email: "example@admin.com",
+		Permissions:[]string{"users.create"},
+	}
+	mockUser.EXPECT().FindById("id").Return(&dbUser)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := crazy_nl_backend.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.GetUser()).Methods("GET")
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/users/id", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusOK, responseRecorder.Code)
+	var responseUser db.User
+	json.NewDecoder(responseRecorder.Body).Decode(&responseUser)
+	expect.Equal("example@admin.com", responseUser.Email)
+	expect.Equal(dbUser.ID, responseUser.ID)
+}
 // endregion
