@@ -37,6 +37,10 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		dbLayer := s.Db.Clone()
 		defer dbLayer.Close()
 		user := dbLayer.Users().FindByEmail(email)
+		if user == nil {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid credentials")
+			return
+		}
 		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid credentials")

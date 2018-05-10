@@ -71,6 +71,28 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
 }
+func TestServer_LoginHandlerRespondsWithBadRequestIfNoUser(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	mockUsersCtrl := gomock.NewController(t)
+	mockDb := mocks.NewMockDb(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager := mocks.NewMockIUserManager(mockUsersCtrl)
+	email := "admin@example.com"
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil)
+	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
+	server := crazy_nl_backend.Server{
+		Logger: getLogger(),
+		Db:     mockDb,
+	}
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.SetBasicAuth(email, "wrong_password")
+	server.LoginHandler()(responseRecorder, request)
+	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
+}
 
 func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	expect := assert.New(t)
