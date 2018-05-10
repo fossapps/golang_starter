@@ -48,7 +48,7 @@ func (r router) userResource() {
 func (r router) permissionsResource() {
 	r.router.HandleFunc(
 		"/permissions", adapters.Adapt(r.server.ListPermissions(),
-			adapters.MustHavePermission(r.perm.Permissions.List))).
+			adapters.AuthMw(r.server.ReqHelper))).
 		Methods("GET")
 }
 
