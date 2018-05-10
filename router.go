@@ -29,7 +29,7 @@ func (r router) userResource() {
 	r.router.HandleFunc(
 		"/users",
 		adapters.Adapt(r.server.CreateUser(), adapters.MustHavePermission(r.perm.User.Create))).
-		Methods("PUT")
+		Methods("POST")
 
 	r.router.HandleFunc(
 		"/users", adapters.Adapt(r.server.ListUsers(),
