@@ -5,8 +5,10 @@
 package mocks
 
 import (
+	redis "github.com/go-redis/redis"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+	time "time"
 )
 
 // MockIRedisClient is a mock of IRedisClient interface
@@ -42,6 +44,19 @@ func (m *MockIRedisClient) Close() error {
 // Close indicates an expected call of Close
 func (mr *MockIRedisClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIRedisClient)(nil).Close))
+}
+
+// Expire mocks base method
+func (m *MockIRedisClient) Expire(arg0 string, arg1 time.Duration) (bool, error) {
+	ret := m.ctrl.Call(m, "Expire", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Expire indicates an expected call of Expire
+func (mr *MockIRedisClientMockRecorder) Expire(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Expire", reflect.TypeOf((*MockIRedisClient)(nil).Expire), arg0, arg1)
 }
 
 // SAdd mocks base method
@@ -117,4 +132,48 @@ func (m *MockIRedisClient) SRem(arg0 string, arg1 ...interface{}) (int64, error)
 func (mr *MockIRedisClientMockRecorder) SRem(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	varargs := append([]interface{}{arg0}, arg1...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SRem", reflect.TypeOf((*MockIRedisClient)(nil).SRem), varargs...)
+}
+
+// ZAdd mocks base method
+func (m *MockIRedisClient) ZAdd(arg0 string, arg1 ...redis.Z) (int64, error) {
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ZAdd", varargs...)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ZAdd indicates an expected call of ZAdd
+func (mr *MockIRedisClientMockRecorder) ZAdd(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZAdd", reflect.TypeOf((*MockIRedisClient)(nil).ZAdd), varargs...)
+}
+
+// ZCard mocks base method
+func (m *MockIRedisClient) ZCard(arg0 string) (int64, error) {
+	ret := m.ctrl.Call(m, "ZCard", arg0)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ZCard indicates an expected call of ZCard
+func (mr *MockIRedisClientMockRecorder) ZCard(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZCard", reflect.TypeOf((*MockIRedisClient)(nil).ZCard), arg0)
+}
+
+// ZRemRangeByScore mocks base method
+func (m *MockIRedisClient) ZRemRangeByScore(arg0, arg1, arg2 string) (int64, error) {
+	ret := m.ctrl.Call(m, "ZRemRangeByScore", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ZRemRangeByScore indicates an expected call of ZRemRangeByScore
+func (mr *MockIRedisClientMockRecorder) ZRemRangeByScore(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZRemRangeByScore", reflect.TypeOf((*MockIRedisClient)(nil).ZRemRangeByScore), arg0, arg1, arg2)
 }

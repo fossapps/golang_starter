@@ -20,6 +20,7 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"fmt"
+	"net"
 )
 
 type ILogger interface {
@@ -157,8 +158,17 @@ func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
 	return &claims, nil
 }
 
+func (RequestHelper) GetIpAddress(r *http.Request) string {
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return ""
+	}
+	return ip
+}
+
 type IRequestHelper interface {
 	GetJwtData(r *http.Request) (*adapters.Claims, error)
+	GetIpAddress(r *http.Request) string
 }
 
 func signingFunc(token *jwt.Token) (interface{}, error) {

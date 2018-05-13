@@ -1,8 +1,11 @@
+//go:generate mockgen -destination=../mocks/mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
+
 package helpers
 
 import (
 	"crazy_nl_backend/config"
 	"github.com/go-redis/redis"
+	"time"
 )
 
 func GetRedis() (IRedisClient, error) {
@@ -24,10 +27,30 @@ type IRedisClient interface {
 	SPop(string) (string, error)
 	SRem(string, ...interface{}) (int64, error)
 	SMembers(string) ([]string, error)
+	ZAdd(key string, members ...redis.Z) (int64, error)
+	ZRemRangeByScore(key, min, max string) (int64, error)
+	ZCard(key string) (int64, error)
+	Expire(key string, expiration time.Duration) (bool, error)
 }
 
 type Redis struct {
 	Client *redis.Client
+}
+
+func (channel *Redis) ZCard(key string) (int64, error) {
+	return channel.Client.ZCard(key).Result()
+}
+
+func (channel *Redis) ZAdd(key string, members ...redis.Z) (int64, error) {
+	return channel.Client.ZAdd(key, members...).Result()
+}
+
+func (channel *Redis) ZRemRangeByScore(key, min, max string) (int64, error) {
+	return channel.Client.ZRemRangeByScore(key, min, max).Result()
+}
+
+func (channel *Redis) Expire(key string, expiration time.Duration) (bool, error) {
+	return channel.Client.Expire(key, expiration).Result()
 }
 
 func (channel *Redis) SIsMember(key string, member interface{}) (bool, error) {

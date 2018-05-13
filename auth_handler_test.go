@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=./mocks/mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
 //go:generate mockgen -destination=./mocks/mock_request_helper.go -package=mocks crazy_nl_backend IRequestHelper
 
 package crazy_nl_backend_test

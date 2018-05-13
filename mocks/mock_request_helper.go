@@ -34,6 +34,18 @@ func (m *MockIRequestHelper) EXPECT() *MockIRequestHelperMockRecorder {
 	return m.recorder
 }
 
+// GetIpAddress mocks base method
+func (m *MockIRequestHelper) GetIpAddress(arg0 *http.Request) string {
+	ret := m.ctrl.Call(m, "GetIpAddress", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetIpAddress indicates an expected call of GetIpAddress
+func (mr *MockIRequestHelperMockRecorder) GetIpAddress(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpAddress", reflect.TypeOf((*MockIRequestHelper)(nil).GetIpAddress), arg0)
+}
+
 // GetJwtData mocks base method
 func (m *MockIRequestHelper) GetJwtData(arg0 *http.Request) (*adapters.Claims, error) {
 	ret := m.ctrl.Call(m, "GetJwtData", arg0)

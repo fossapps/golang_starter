@@ -4,6 +4,9 @@ import (
 	"crazy_nl_backend/adapters"
 
 	"github.com/gorilla/mux"
+	"time"
+	"net/http"
+	"gopkg.in/matryer/respond.v1"
 )
 
 type router struct {
@@ -73,5 +76,16 @@ func NewRouter(s Server) *mux.Router {
 		router: muxRouter,
 	}
 	routerInstance.build()
+	limiterOptions := adapters.LimiterOptions{
+		Decay:         10 * time.Second,
+		RequestHelper: routerInstance.server.ReqHelper,
+		Limit:         3,
+		Namespace:     "test",
+		RedisClient:   routerInstance.server.Redis,
+		AddHeaders:    true,
+	}
+	routerInstance.router.HandleFunc("/test", adapters.Adapt(func(writer http.ResponseWriter, request *http.Request) {
+		respond.With(writer, request, http.StatusOK, "success")
+	}, adapters.Limit(limiterOptions)))
 	return routerInstance.router
 }
