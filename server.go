@@ -1,5 +1,3 @@
-//go:generate mockgen -destination=./mocks/mock_logger.go -package=mocks crazy_nl_backend ILogger
-
 package crazy_nl_backend
 
 import (

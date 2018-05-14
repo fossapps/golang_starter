@@ -8,5 +8,6 @@
 //go:generate mockgen -destination=./mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
 //go:generate mockgen -destination=./mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
 //go:generate mockgen -destination=./mock_migration_implementation.go -package=mocks crazy_nl_backend/migrations IMigration
+//go:generate mockgen -destination=./mock_logger.go -package=mocks crazy_nl_backend ILogger
 
 package mocks
