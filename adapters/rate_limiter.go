@@ -1,10 +1,10 @@
+//go:generate mockgen -destination=../mocks/mock_rate_limiter.go -package=mocks crazy_nl_backend/adapters IRateLimiter
+
 package adapters
 
 import (
 	"net/http"
-	"time"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/helpers"
 	"strconv"
 )
 
@@ -14,18 +14,17 @@ type IRequestHelper interface {
 }
 
 type IRateLimiter interface {
-	Hit(key string, duration time.Duration) (int64, error)
+	Hit(key string) (int64, error)
 	Count(key string) (int64, error)
 }
 
 type LimiterOptions struct {
 	Namespace     string
-	Decay         time.Duration
 	RequestHelper IRequestHelper
 	Limit         int
-	RedisClient   helpers.RedisClient
 	AddHeaders    bool
 	Logger        ILogger
+	Limiter       IRateLimiter
 }
 
 type ILogger interface {
@@ -35,28 +34,27 @@ type ILogger interface {
 func Limit(options LimiterOptions) Adapter {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			limiter := helpers.Limiter{
-				RedisClient: options.RedisClient,
-				Decay:       options.Decay,
-				Limit:       options.Limit,
-			}
 			key := getKeyFromRequest(options.Namespace, r, options.RequestHelper)
 
-			card, err := limiter.Count(key)
+			card, err := options.Limiter.Count(key)
 			if err != nil {
 				options.Logger.Warn("rate limiting counting error", err)
+				respond.With(w, r, http.StatusInternalServerError, "server error")
+				return
 			}
 
-			if card+1 > int64(options.Limit) {
+			if card >= int64(options.Limit) {
 				if options.AddHeaders {
 					options.addHeaders(w, card)
 				}
 				respond.With(w, r, http.StatusTooManyRequests, "too many requests")
 				return
 			}
-			card, err = limiter.Hit(key)
+			card, err = options.Limiter.Hit(key)
 			if err != nil {
 				options.Logger.Warn("rate limit error", err)
+				respond.With(w, r, http.StatusInternalServerError, "server error")
+				return
 			}
 			if options.AddHeaders {
 				options.addHeaders(w, card)
@@ -74,11 +72,8 @@ func (limiter LimiterOptions) addHeaders(w http.ResponseWriter, currentCount int
 
 func getKeyFromRequest(namespace string, r *http.Request, requestHelper IRequestHelper) string {
 	data, err := requestHelper.GetJwtData(r)
-	var key string
 	if err != nil {
-		key = requestHelper.GetIpAddress(r)
-	} else {
-		key = data.ID
+		return namespace + "-" + requestHelper.GetIpAddress(r)
 	}
-	return namespace + "-" + key
+	return namespace + "-" + data.ID
 }
