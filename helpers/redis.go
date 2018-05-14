@@ -1,5 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_redis.go -package=mocks crazy_nl_backend/helpers IRedisClient
-
 package helpers
 
 import (

@@ -1,5 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_migration_implementation.go -package=mocks crazy_nl_backend/migrations IMigration
-
 package migrations_test
 
 import (

@@ -1,5 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_rate_limiter.go -package=mocks crazy_nl_backend/adapters IRateLimiter
-
 package adapters
 
 import (

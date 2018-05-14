@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_permissions.go -package=mocks crazy_nl_backend/db IPermissionManager
 // +build integration
 
 package db_test

@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_devices.go -package=mocks crazy_nl_backend/db IDeviceManager
 // +build integration
 
 package db_test

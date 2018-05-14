@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_refresh_tokens.go -package=mocks crazy_nl_backend/db IRefreshTokenManager
 // +build integration
 
 package db_test

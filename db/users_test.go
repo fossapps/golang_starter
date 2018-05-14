@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=../mocks/mock_users.go -package=mocks crazy_nl_backend/db IUserManager
 // +build integration
 
 package db_test
