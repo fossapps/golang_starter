@@ -9,6 +9,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
+	"crazy_nl_backend/transformers"
 )
 
 type NewUser struct {
@@ -73,7 +74,7 @@ func (s Server) ListUsers() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "internal server error")
 			return
 		}
-		respond.With(w, r, http.StatusOK, users)
+		respond.With(w, r, http.StatusOK, transformers.TransformUsers(users))
 	})
 }
 
@@ -131,9 +132,9 @@ func (s Server) GetUser() http.HandlerFunc {
 		id := mux.Vars(r)["user"]
 		user := s.Db.Users().FindById(id)
 		if user == nil {
-			s.ErrorResponse(w, r, http.StatusNotFound, "not found");
+			s.ErrorResponse(w, r, http.StatusNotFound, "not found")
 			return
 		}
-		respond.With(w, r, http.StatusOK, user)
+		respond.With(w, r, http.StatusOK, transformers.TransformUser(*user))
 	})
 }

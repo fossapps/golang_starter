@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
+	"crazy_nl_backend/transformers"
 )
 
 type LoginResponse struct {
@@ -112,7 +113,7 @@ func (s *Server) RefreshTokensList() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "database error")
 			return
 		}
-		respond.With(w, r, http.StatusOK, tokens)
+		respond.With(w, r, http.StatusOK, transformers.TransformRefreshTokens(tokens))
 	})
 }
 

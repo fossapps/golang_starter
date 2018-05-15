@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"gopkg.in/matryer/respond.v1"
+	"crazy_nl_backend/transformers"
 )
 
 func (s *Server) ListPermissions() http.HandlerFunc {
@@ -14,6 +15,6 @@ func (s *Server) ListPermissions() http.HandlerFunc {
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "Server Error")
 		}
-		respond.With(w, r, http.StatusOK, permissionList)
+		respond.With(w, r, http.StatusOK, transformers.TransformPermissions(permissionList))
 	})
 }

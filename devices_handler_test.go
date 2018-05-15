@@ -144,9 +144,10 @@ func TestServer_RegisterHandlerRegisters(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(crazy_nl_backend.RegistrationResponse)
+	res := new(crazy_nl_backend.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
-	expect.Equal("success", res.Status)
+	expect.True(res.Success)
+	expect.Equal("success", res.Message)
 }
 
 func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *testing.T) {

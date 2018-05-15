@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gopkg.in/matryer/respond.v1"
 )
 
 type NewRegistration struct {
@@ -51,8 +50,6 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
-		respond.With(w, r, http.StatusOK, RegistrationResponse{
-			Status: "success",
-		})
+		s.SuccessResponse(w, r, http.StatusOK, "success")
 	})
 }

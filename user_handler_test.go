@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/globalsign/mgo/bson"
+	"crazy_nl_backend/transformers"
 )
 
 // region User.Create
@@ -147,8 +148,12 @@ func TestServer_ListUsersReturnsInternalServerErrorIfDbError(t *testing.T) {
 
 func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 	mockUsers := []db.User{
-		{Email: "mail@example.com", Permissions: []string{"sudo"}, Password: "test_password"},
-		{Email: "mail2@example.com", Permissions: []string{"sudo"}, Password: "test_password2"},
+		{Email: "mail@example.com", Permissions: []string{"sudo"}, Password: ""},
+		{Email: "mail2@example.com", Permissions: []string{"sudo"}, Password: ""},
+	}
+	expectedUsers := []transformers.ResponseUser {
+		{Email: "mail@example.com", Permissions: []string{"sudo"}},
+		{Email: "mail2@example.com", Permissions: []string{"sudo"}},
 	}
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
@@ -167,9 +172,9 @@ func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 		Db: mockDb,
 	}.ListUsers()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	var resUsers []db.User = nil
+	var resUsers []transformers.ResponseUser = nil
 	json.NewDecoder(responseRecorder.Body).Decode(&resUsers)
-	expect.Equal(mockUsers, resUsers)
+	expect.Equal(expectedUsers, resUsers)
 }
 
 // endregion
@@ -448,9 +453,9 @@ func TestServer_GetUserReturnsUser(t *testing.T) {
 	request := httptest.NewRequest("GET", "/users/id", nil)
 	router.ServeHTTP(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	var responseUser db.User
+	var responseUser transformers.ResponseUser
 	json.NewDecoder(responseRecorder.Body).Decode(&responseUser)
 	expect.Equal("example@admin.com", responseUser.Email)
-	expect.Equal(dbUser.ID, responseUser.ID)
+	expect.Equal(dbUser.ID.Hex(), responseUser.ID.Hex())
 }
 // endregion
