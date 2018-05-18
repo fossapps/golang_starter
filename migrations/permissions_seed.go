@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"crazy_nl_backend/db"
+	"golang_starter/db"
 
 	"github.com/globalsign/mgo"
 )

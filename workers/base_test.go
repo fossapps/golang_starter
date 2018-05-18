@@ -1,8 +1,8 @@
 package workers_test
 
 import (
-	"crazy_nl_backend/mocks"
-	"crazy_nl_backend/workers"
+	"golang_starter/mocks"
+	"golang_starter/workers"
 	"github.com/cyberhck/captain"
 	"github.com/golang/mock/gomock"
 	"testing"

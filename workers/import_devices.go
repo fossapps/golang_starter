@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"crazy_nl_backend/helpers"
+	"golang_starter/helpers"
 	"github.com/cyberhck/captain"
 	"github.com/cyberhck/pushy"
 	"github.com/globalsign/mgo"

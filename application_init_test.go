@@ -1,9 +1,9 @@
 // +build integration
 
-package crazy_nl_backend_test
+package golang_starter_test
 
 import (
-	"crazy_nl_backend/config"
+	"golang_starter/config"
 	"testing"
 
 	"github.com/globalsign/mgo"

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"crazy_nl_backend/config"
+	"golang_starter/config"
 
 	"fmt"
 	"github.com/dgrijalva/jwt-go"

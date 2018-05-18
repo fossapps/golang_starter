@@ -1,9 +1,9 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
-	"crazy_nl_backend/config"
-	"crazy_nl_backend/db"
-	"crazy_nl_backend/helpers"
+	"golang_starter/config"
+	"golang_starter/db"
+	"golang_starter/helpers"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +15,7 @@ import (
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/adapters"
+	"golang_starter/adapters"
 	"github.com/dgrijalva/jwt-go/request"
 	"errors"
 	"github.com/dgrijalva/jwt-go"

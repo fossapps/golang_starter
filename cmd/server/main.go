@@ -1,7 +1,7 @@
 package main
 
-import "crazy_nl_backend"
+import "golang_starter"
 
 func main() {
-	crazy_nl_backend.Init()
+	golang_starter.Init()
 }

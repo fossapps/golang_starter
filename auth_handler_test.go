@@ -1,6 +1,4 @@
-//go:generate mockgen -destination=./mocks/mock_request_helper.go -package=mocks crazy_nl_backend IRequestHelper
-
-package crazy_nl_backend_test
+package golang_starter_test
 
 import (
 	"encoding/json"
@@ -9,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"crazy_nl_backend"
-	"crazy_nl_backend/db"
-	"crazy_nl_backend/mocks"
+	"golang_starter"
+	"golang_starter/db"
+	"golang_starter/mocks"
 
-	"crazy_nl_backend/adapters"
-	"crazy_nl_backend/config"
+	"golang_starter/adapters"
+	"golang_starter/config"
 	"errors"
 	"time"
 
@@ -27,7 +25,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func getLogger() crazy_nl_backend.ILogger {
+func getLogger() golang_starter.ILogger {
 	logger := logrus.New()
 	logger.Out = httptest.NewRecorder()
 	return logger
@@ -38,7 +36,7 @@ func getLogger() crazy_nl_backend.ILogger {
 func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Logger: getLogger(),
 	}
 	server.LoginHandler()(responseRecorder, request)
@@ -59,7 +57,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	user := db.User{Email: email, Password: string(hash)}
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Logger: getLogger(),
 		Db:     mockDb,
 	}
@@ -81,7 +79,7 @@ func TestServer_LoginHandlerRespondsWithBadRequestIfNoUser(t *testing.T) {
 	email := "admin@example.com"
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Logger: getLogger(),
 		Db:     mockDb,
 	}
@@ -111,7 +109,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	user := db.User{Email: email, Password: string(hash)}
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: mockDb,
 	}
 
@@ -120,7 +118,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	request.SetBasicAuth(email, pass)
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(crazy_nl_backend.LoginResponse)
+	res := new(golang_starter.LoginResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.NotNil(res.RefreshToken)
 	expect.NotNil(res.JWT)
@@ -149,7 +147,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	mockUserManager.EXPECT().FindByEmail(email).Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: mockDb,
 	}
 
@@ -158,7 +156,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	request.SetBasicAuth(email, pass)
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(crazy_nl_backend.LoginResponse)
+	res := new(golang_starter.LoginResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.NotNil(res.RefreshToken)
 	expect.NotNil(res.JWT)
@@ -170,7 +168,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusBadRequestIfNoAuthToken(t *
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := crazy_nl_backend.Server{}
+	server := golang_starter.Server{}
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
@@ -192,7 +190,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -223,7 +221,7 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
 
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -259,7 +257,7 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
 
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -278,7 +276,7 @@ func TestServer_RefreshTokensListReturnsBadRequestWhenTokenWrong(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	server := crazy_nl_backend.Server{ReqHelper: mockRequestHelper}
+	server := golang_starter.Server{ReqHelper: mockRequestHelper}
 	server.RefreshTokensList()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
@@ -320,7 +318,7 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	mockRequest := httptest.NewRequest("GET", "/", nil)
 	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
@@ -360,7 +358,7 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	mockRequest := httptest.NewRequest("GET", "/", nil)
 	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
@@ -389,7 +387,7 @@ func TestServer_DeleteSessionReturnsNotFoundIfNoToken(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()
@@ -414,7 +412,7 @@ func TestServer_DeleteSessionReturnsInternalServerErrorIfDbError(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()
@@ -439,7 +437,7 @@ func TestServer_DeleteSessionReturnsNoContent(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()

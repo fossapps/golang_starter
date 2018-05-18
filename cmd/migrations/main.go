@@ -1,9 +1,9 @@
 package main
 
 import (
-	"crazy_nl_backend/config"
-	"crazy_nl_backend/db"
-	"crazy_nl_backend/migrations"
+	"golang_starter/config"
+	"golang_starter/db"
+	"golang_starter/migrations"
 
 	"github.com/globalsign/mgo"
 )

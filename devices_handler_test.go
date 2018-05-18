@@ -1,6 +1,6 @@
 //go:generate mockgen -destination=./mocks/mock_pushy_client.go -package=mocks github.com/cyberhck/pushy IPushyClient
 
-package crazy_nl_backend_test
+package golang_starter_test
 
 import (
 	"bytes"
@@ -10,20 +10,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"crazy_nl_backend/mocks"
+	"golang_starter/mocks"
 
 	"github.com/cyberhck/pushy"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"crazy_nl_backend"
+	"golang_starter"
 )
 
 func TestServer_RegisterHandlerReturnsBadRequestRequestIfJsonInvalid(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := crazy_nl_backend.Server{}
+	server := golang_starter.Server{}
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusUnprocessableEntity, responseRecorder.Code)
 	buffer := new(bytes.Buffer)
@@ -40,9 +40,9 @@ func TestServer_RegisterHandlerReturnsBadRequestRequestIfJsonInvalid(t *testing.
 
 func TestServer_RegisterHandlerReturnsBadRequestIfTokenIsInvalid(t *testing.T) {
 	expect := assert.New(t)
-	server := crazy_nl_backend.Server{}
+	server := golang_starter.Server{}
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+	json.NewEncoder(buffer).Encode(golang_starter.NewRegistration{
 		Token: "token",
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
@@ -66,19 +66,19 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(true)
 	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:    mockDb,
 		Pushy: mockPushy,
 	}
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+	json.NewEncoder(buffer).Encode(golang_starter.NewRegistration{
 		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
-	res := new(crazy_nl_backend.SimpleResponse)
+	res := new(golang_starter.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("already registered", res.Message)
 }
@@ -99,19 +99,19 @@ func TestServer_RegisterHandlerReturnsInternalServerIfDbError(t *testing.T) {
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
 	mockDeviceManager.EXPECT().Register(token).Times(1).Return(errors.New("db error"))
 	mockDb.EXPECT().Devices().MinTimes(1).Return(mockDeviceManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:    mockDb,
 		Pushy: mockPushy,
 	}
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+	json.NewEncoder(buffer).Encode(golang_starter.NewRegistration{
 		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
-	res := new(crazy_nl_backend.SimpleResponse)
+	res := new(golang_starter.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("db error", res.Message)
 }
@@ -132,19 +132,19 @@ func TestServer_RegisterHandlerRegisters(t *testing.T) {
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
 	mockDeviceManager.EXPECT().Register(token).Times(1).Return(nil)
 	mockDb.EXPECT().Devices().MinTimes(1).Return(mockDeviceManager)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:    mockDb,
 		Pushy: mockPushy,
 	}
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+	json.NewEncoder(buffer).Encode(golang_starter.NewRegistration{
 		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(crazy_nl_backend.SimpleResponse)
+	res := new(golang_starter.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.True(res.Success)
 	expect.Equal("success", res.Message)
@@ -163,19 +163,19 @@ func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *tes
 		Error: "We could not find a device with that token linked to your account.",
 	}
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, &mockPushyError, nil)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db:    mockDb,
 		Pushy: mockPushy,
 	}
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(crazy_nl_backend.NewRegistration{
+	json.NewEncoder(buffer).Encode(golang_starter.NewRegistration{
 		Token: token,
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
 	responseRecorder := httptest.NewRecorder()
 	server.RegisterHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
-	res := new(crazy_nl_backend.SimpleResponse)
+	res := new(golang_starter.SimpleResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.Equal("invalid token", res.Message)
 }

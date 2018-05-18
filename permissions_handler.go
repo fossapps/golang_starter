@@ -1,10 +1,10 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
 	"net/http"
 
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/transformers"
+	"golang_starter/transformers"
 )
 
 func (s *Server) ListPermissions() http.HandlerFunc {

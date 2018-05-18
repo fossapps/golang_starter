@@ -1,4 +1,4 @@
-package crazy_nl_backend_test
+package golang_starter_test
 
 import (
 	"encoding/json"
@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"crazy_nl_backend"
-	"crazy_nl_backend/db"
-	"crazy_nl_backend/mocks"
+	"golang_starter"
+	"golang_starter/db"
+	"golang_starter/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ func TestServer_ListPermissionsListsPermissionFromDb(t *testing.T) {
 	dbManager := mocks.NewMockDb(dbCtrl)
 	dbManager.EXPECT().Clone().AnyTimes().Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: dbManager,
 	}
 	mockPermissionList := []db.Permission{
@@ -59,7 +59,7 @@ func TestServer_ListPermissionsReturnsInternalServerErrorIfDbError(t *testing.T)
 	dbManager := mocks.NewMockDb(dbCtrl)
 	dbManager.EXPECT().Clone().AnyTimes().Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
-	server := crazy_nl_backend.Server{
+	server := golang_starter.Server{
 		Db: dbManager,
 	}
 	permissionManager.EXPECT().List().Times(1).Return(nil, errors.New("db error"))

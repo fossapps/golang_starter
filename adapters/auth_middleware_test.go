@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"crazy_nl_backend/adapters"
-	"crazy_nl_backend/mocks"
+	"golang_starter/adapters"
+	"golang_starter/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

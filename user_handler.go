@@ -1,7 +1,7 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
-	"crazy_nl_backend/db"
+	"golang_starter/db"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/transformers"
+	"golang_starter/transformers"
 )
 
 type NewUser struct {

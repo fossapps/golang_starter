@@ -1,13 +1,13 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
-	"crazy_nl_backend/adapters"
+	"golang_starter/adapters"
 
 	"github.com/gorilla/mux"
 	"time"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/helpers"
+	"golang_starter/helpers"
 )
 
 type router struct {

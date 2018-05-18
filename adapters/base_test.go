@@ -1,7 +1,7 @@
 package adapters_test
 
 import (
-	"crazy_nl_backend/adapters"
+	"golang_starter/adapters"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"

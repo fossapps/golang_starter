@@ -1,6 +1,6 @@
 package transformers
 
-import "crazy_nl_backend/db"
+import "golang_starter/db"
 
 type ResponseRefreshToken struct {
 	Token string `json:"token"`

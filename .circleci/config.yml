@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     machine: true
-    working_directory: /home/circleci/.go_workspace/src/crazy_nl_backend
+    working_directory: /home/circleci/.go_workspace/src/golang_starter
     steps:
       - checkout
       # specify any bash command here prefixed with `run: `

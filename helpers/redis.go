@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"crazy_nl_backend/config"
+	"golang_starter/config"
 	"github.com/go-redis/redis"
 	"time"
 )

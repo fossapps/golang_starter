@@ -2,10 +2,10 @@ package helpers_test
 
 import (
 	"testing"
-	"crazy_nl_backend/helpers"
+	"golang_starter/helpers"
 	"time"
 	"github.com/golang/mock/gomock"
-	"crazy_nl_backend/mocks"
+	"golang_starter/mocks"
 	"github.com/stretchr/testify/assert"
 	"errors"
 )

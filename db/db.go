@@ -1,7 +1,7 @@
 package db
 
 import (
-	"crazy_nl_backend/config"
+	"golang_starter/config"
 
 	"github.com/globalsign/mgo"
 )

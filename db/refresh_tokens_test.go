@@ -5,8 +5,8 @@ package db_test
 import (
 	"testing"
 
-	"crazy_nl_backend/config"
-	"crazy_nl_backend/db"
+	"golang_starter/config"
+	"golang_starter/db"
 
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"

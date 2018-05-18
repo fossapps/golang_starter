@@ -3,7 +3,7 @@ package migrations
 import (
 	"fmt"
 
-	"crazy_nl_backend/db"
+	"golang_starter/db"
 )
 
 func ApplyAll(dbLayer db.Db) {

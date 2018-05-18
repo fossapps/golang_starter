@@ -1,9 +1,9 @@
-package crazy_nl_backend_test
+package golang_starter_test
 
 import (
 	"testing"
 
-	"crazy_nl_backend"
+	"golang_starter"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,6 +11,6 @@ import (
 // this file is just for the sake of coverage
 
 func TestConst(t *testing.T) {
-	constants := crazy_nl_backend.Const()
+	constants := golang_starter.Const()
 	assert.NotNil(t, constants)
 }

@@ -1,8 +1,8 @@
 package helpers_test
 
 import (
-	"crazy_nl_backend/helpers"
-	"crazy_nl_backend/mocks"
+	"golang_starter/helpers"
+	"golang_starter/mocks"
 	"testing"
 
 	"github.com/golang/mock/gomock"

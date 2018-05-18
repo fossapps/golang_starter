@@ -1,4 +1,4 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
 	"crypto/rand"
@@ -7,15 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"crazy_nl_backend/config"
-	"crazy_nl_backend/db"
+	"golang_starter/config"
+	"golang_starter/db"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/matryer/respond.v1"
-	"crazy_nl_backend/transformers"
+	"golang_starter/transformers"
 )
 
 type LoginResponse struct {

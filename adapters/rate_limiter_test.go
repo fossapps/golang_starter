@@ -3,8 +3,8 @@ package adapters_test
 import (
 	"testing"
 	"github.com/golang/mock/gomock"
-	"crazy_nl_backend/mocks"
-	"crazy_nl_backend/adapters"
+	"golang_starter/mocks"
+	"golang_starter/adapters"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
 	"errors"

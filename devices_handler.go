@@ -1,4 +1,4 @@
-package crazy_nl_backend
+package golang_starter
 
 import (
 	"encoding/json"
