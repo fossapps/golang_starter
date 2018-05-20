@@ -1,4 +1,4 @@
-package golang_starter_test
+package starter_test
 
 import (
 	"encoding/json"
@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"golang_starter"
-	"golang_starter/db"
-	"golang_starter/mocks"
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/mocks"
 
-	"golang_starter/adapters"
-	"golang_starter/config"
+	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/config"
 	"errors"
 	"time"
 
@@ -25,7 +25,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func getLogger() golang_starter.ILogger {
+func getLogger() starter.ILogger {
 	logger := logrus.New()
 	logger.Out = httptest.NewRecorder()
 	return logger
@@ -36,7 +36,7 @@ func getLogger() golang_starter.ILogger {
 func TestServer_LoginHandlerRespondsWithUnauthorizedIfNoHeader(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Logger: getLogger(),
 	}
 	server.LoginHandler()(responseRecorder, request)
@@ -57,7 +57,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	user := db.User{Email: email, Password: string(hash)}
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Logger: getLogger(),
 		Db:     mockDb,
 	}
@@ -79,7 +79,7 @@ func TestServer_LoginHandlerRespondsWithBadRequestIfNoUser(t *testing.T) {
 	email := "admin@example.com"
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Logger: getLogger(),
 		Db:     mockDb,
 	}
@@ -109,7 +109,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	user := db.User{Email: email, Password: string(hash)}
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 
@@ -118,7 +118,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	request.SetBasicAuth(email, pass)
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(golang_starter.LoginResponse)
+	res := new(starter.LoginResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.NotNil(res.RefreshToken)
 	expect.NotNil(res.JWT)
@@ -147,7 +147,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	mockUserManager.EXPECT().FindByEmail(email).Return(&user)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 
@@ -156,7 +156,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	request.SetBasicAuth(email, pass)
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	res := new(golang_starter.LoginResponse)
+	res := new(starter.LoginResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&res)
 	expect.NotNil(res.RefreshToken)
 	expect.NotNil(res.JWT)
@@ -168,7 +168,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusBadRequestIfNoAuthToken(t *
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	server := golang_starter.Server{}
+	server := starter.Server{}
 	server.RefreshTokenHandler()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
@@ -190,7 +190,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -208,7 +208,7 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	mockDb := mocks.NewMockDb(mockDbCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
-	mockUserManager.EXPECT().FindById("some_user").Times(1).Return(nil)
+	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
 		Token: "auth_token",
@@ -221,7 +221,7 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
 
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -244,7 +244,7 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 		Email:       "random",
 		Permissions: []string{"sudo"},
 	}
-	mockUserManager.EXPECT().FindById("some_user").Times(1).Return(mockUser)
+	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(mockUser)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
 		Token: "auth_token",
@@ -257,7 +257,7 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	request := httptest.NewRequest("POST", "/", nil)
 	request.Header.Add("Authorization", "Bearer auth_token")
 
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db:     mockDb,
 		Logger: getLogger(),
 	}
@@ -276,7 +276,7 @@ func TestServer_RefreshTokensListReturnsBadRequestWhenTokenWrong(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	server := golang_starter.Server{ReqHelper: mockRequestHelper}
+	server := starter.Server{ReqHelper: mockRequestHelper}
 	server.RefreshTokensList()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
@@ -300,9 +300,9 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	requestHelperCtrl := gomock.NewController(t)
 	defer requestHelperCtrl.Finish()
 	mockRequestHelper := mocks.NewMockIRequestHelper(requestHelperCtrl)
-	userId := "some_random_id"
+	userID := "some_random_id"
 	claims := adapters.Claims{
-		ID:          userId,
+		ID:          userID,
 		Email:       "admin@example.com",
 		Permissions: []string{"sudo"},
 	}
@@ -311,14 +311,14 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
-	mockRefreshTokenManager.EXPECT().List(userId).Return(nil, errors.New("dbError"))
+	mockRefreshTokenManager.EXPECT().List(userID).Return(nil, errors.New("dbError"))
 	mockDb.EXPECT().RefreshTokens().AnyTimes().Return(mockRefreshTokenManager)
-	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
+	token := getJwtForUser(userID, "admin@example.com", []string{"sudo"})
 	// that's valid jwt
 	mockRequest := httptest.NewRequest("GET", "/", nil)
 	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
@@ -337,9 +337,9 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	defer requestHelperCtrl.Finish()
 	mockRequestHelper := mocks.NewMockIRequestHelper(requestHelperCtrl)
 	mockRefreshTokenManager := mocks.NewMockIRefreshTokenManager(refreshTokenCtrl)
-	userId := "some_random_id"
+	userID := "some_random_id"
 	claims := adapters.Claims{
-		ID:          userId,
+		ID:          userID,
 		Email:       "admin@example.com",
 		Permissions: []string{"sudo"},
 	}
@@ -351,20 +351,20 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 		{Token: "token2", User: "some_random_id"},
 	}
 	// get list and return
-	mockRefreshTokenManager.EXPECT().List(userId).Return(refreshTokens, nil)
+	mockRefreshTokenManager.EXPECT().List(userID).Return(refreshTokens, nil)
 	mockDb.EXPECT().RefreshTokens().AnyTimes().Return(mockRefreshTokenManager)
-	token := getJwtForUser(userId, "admin@example.com", []string{"sudo"})
+	token := getJwtForUser(userID, "admin@example.com", []string{"sudo"})
 	// that's valid jwt
 	mockRequest := httptest.NewRequest("GET", "/", nil)
 	mockRequest.Header.Add("Authorization", "Bearer "+token)
 	responseRecorder := httptest.NewRecorder()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db:        mockDb,
 		ReqHelper: mockRequestHelper,
 	}
 	server.RefreshTokensList()(responseRecorder, mockRequest)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	var responseTokens []db.RefreshToken = nil
+	var responseTokens []db.RefreshToken
 	json.NewDecoder(responseRecorder.Body).Decode(&responseTokens)
 	expect.Equal(refreshTokens, responseTokens)
 }
@@ -387,7 +387,7 @@ func TestServer_DeleteSessionReturnsNotFoundIfNoToken(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()
@@ -412,7 +412,7 @@ func TestServer_DeleteSessionReturnsInternalServerErrorIfDbError(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()
@@ -437,7 +437,7 @@ func TestServer_DeleteSessionReturnsNoContent(t *testing.T) {
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().AnyTimes()
 	mockDb.EXPECT().RefreshTokens().Return(mockRefreshTokenManager)
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router := mux.NewRouter()

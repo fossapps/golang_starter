@@ -1,7 +1,7 @@
 package main
 
-import "golang_starter"
+import "github.com/fossapps/starter"
 
 func main() {
-	golang_starter.Init()
+	starter.Init()
 }

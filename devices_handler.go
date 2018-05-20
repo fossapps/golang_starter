@@ -1,4 +1,4 @@
-package golang_starter
+package starter
 
 import (
 	"encoding/json"
@@ -6,10 +6,12 @@ import (
 
 )
 
+// NewRegistration used for making a registration request
 type NewRegistration struct {
 	Token string `json:"token"`
 }
 
+// RegistrationResponse response for registration request
 type RegistrationResponse struct {
 	Status string `json:"status"`
 }
@@ -21,6 +23,7 @@ func (registration *NewRegistration) ok() bool {
 	return true
 }
 
+// RegisterHandler is handler for registration requests
 func (s *Server) RegisterHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		registration := new(NewRegistration)

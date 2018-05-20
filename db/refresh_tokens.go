@@ -45,7 +45,7 @@ func (dbLayer refreshTokenLayer) FindOne(token string) *RefreshToken {
 
 // List all tokens belonging to user
 func (dbLayer refreshTokenLayer) List(user string) ([]RefreshToken, error) {
-	var tokens []RefreshToken = nil
+	var tokens []RefreshToken
 	err := dbLayer.db.C("refresh_tokens").Find(bson.M{
 		"user": user,
 	}).All(&tokens)

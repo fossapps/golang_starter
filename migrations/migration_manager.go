@@ -3,22 +3,24 @@ package migrations
 import (
 	"fmt"
 
-	"golang_starter/db"
+	"github.com/fossapps/starter/db"
 )
 
+// ApplyAll applies all migration to a specific database
 func ApplyAll(dbLayer db.Db) {
 	Apply(UserSeed{}, dbLayer)
 	Apply(PermissionSeeds{}, dbLayer)
 }
 
-func Apply(seeder IMigration, dbLayer db.Db) {
-	if !dbLayer.Migrations().ShouldRun(seeder.GetKey()) {
+// Apply individual migration to a db
+func Apply(migration IMigration, dbLayer db.Db) {
+	if !dbLayer.Migrations().ShouldRun(migration.GetKey()) {
 		return
 	}
-	key := seeder.GetKey()
-	description := seeder.GetDescription()
+	key := migration.GetKey()
+	description := migration.GetDescription()
 	fmt.Printf("applying migration file: %s\n", key)
 	fmt.Println(description)
-	seeder.Apply(dbLayer)
-	dbLayer.Migrations().MarkApplied(seeder.GetKey(), seeder.GetDescription())
+	migration.Apply(dbLayer)
+	dbLayer.Migrations().MarkApplied(migration.GetKey(), migration.GetDescription())
 }

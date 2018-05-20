@@ -6,16 +6,19 @@ import (
 	"strconv"
 )
 
+// IRequestHelper see IRequestHelper in server.go
 type IRequestHelper interface {
 	GetJwtData(r *http.Request) (*Claims, error)
-	GetIpAddress(r *http.Request) string
+	GetIPAddress(r *http.Request) string
 }
 
+// IRateLimiter implementation needed to work
 type IRateLimiter interface {
 	Hit(key string) (int64, error)
 	Count(key string) (int64, error)
 }
 
+// LimiterOptions dependencies of Limit adapter
 type LimiterOptions struct {
 	Namespace     string
 	RequestHelper IRequestHelper
@@ -25,10 +28,12 @@ type LimiterOptions struct {
 	Limiter       IRateLimiter
 }
 
+// ILogger implementation needed for Limit adapter to log
 type ILogger interface {
 	Warn(args ...interface{})
 }
 
+// Limit adapter ensures a handler isn't called more than N times in D duraton
 func Limit(options LimiterOptions) Adapter {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +76,7 @@ func (limiter LimiterOptions) addHeaders(w http.ResponseWriter, currentCount int
 func getKeyFromRequest(namespace string, r *http.Request, requestHelper IRequestHelper) string {
 	data, err := requestHelper.GetJwtData(r)
 	if err != nil {
-		return namespace + "-" + requestHelper.GetIpAddress(r)
+		return namespace + "-" + requestHelper.GetIPAddress(r)
 	}
 	return namespace + "-" + data.ID
 }

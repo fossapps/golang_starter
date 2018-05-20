@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"golang_starter/adapters"
-	"golang_starter/mocks"
+	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

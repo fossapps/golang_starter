@@ -3,8 +3,8 @@ package adapters_test
 import (
 	"testing"
 	"github.com/golang/mock/gomock"
-	"golang_starter/mocks"
-	"golang_starter/adapters"
+	"github.com/fossapps/starter/mocks"
+	"github.com/fossapps/starter/adapters"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
 	"errors"
@@ -65,7 +65,7 @@ func TestLimitUsesIpAddrIfIdNotAvailable(t *testing.T) {
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(nil, errors.New("error"))
-	mockRequestHelper.EXPECT().GetIpAddress(gomock.Any()).Times(1).Return("ip_addr")
+	mockRequestHelper.EXPECT().GetIPAddress(gomock.Any()).Times(1).Return("ip_addr")
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-ip_addr").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper

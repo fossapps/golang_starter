@@ -1,9 +1,11 @@
-package golang_starter
+package starter
 
+// Constants structure for storing constants application wide
 type Constants struct {
 	Permissions Permissions
 }
 
+// UserPermission to store constants related to user permission
 type UserPermission struct {
 	List   string
 	Create string
@@ -11,6 +13,7 @@ type UserPermission struct {
 	Delete string
 }
 
+// Permissions store all available types of permission this application supports
 type Permissions struct {
 	Sudo          string
 	User          UserPermission
@@ -19,20 +22,24 @@ type Permissions struct {
 	Metrics       MetricPermissions
 }
 
+// Permission permission related permissions
 type Permission struct {
 	List string
 }
 
+// NotificationPermissions permissions related to notifications
 type NotificationPermissions struct {
 	Create string
 	View   string
 	Delete string
 }
 
+// MetricPermissions permissions related to metric
 type MetricPermissions struct {
 	View string
 }
 
+// Const returns a Constants struct with populated fields
 func Const() Constants {
 	return Constants{
 		Permissions: Permissions{

@@ -1,26 +1,31 @@
 package migrations
 
 import (
-	"golang_starter/db"
+	"github.com/fossapps/starter/db"
 
 	"github.com/globalsign/mgo"
 )
 
+// PermissionSeeds seed for adding initial list of permissions
 type PermissionSeeds struct{}
 
+// Permissions struct to hold permission information
 type Permissions struct {
 	Key         string `json:"key"`
 	Description string `json:"description"`
 }
 
+// GetKey returns key for permission seeds
 func (PermissionSeeds) GetKey() string {
 	return "INITIAL_PERMISSION_SEEDS"
 }
 
+// GetDescription returns description for permission seeds
 func (PermissionSeeds) GetDescription() string {
 	return "Create basic permission systems"
 }
 
+// Apply adds permission to database
 func (PermissionSeeds) Apply(dbLayer db.Db) {
 	permissions := []Permissions{
 		{
@@ -70,6 +75,7 @@ func (PermissionSeeds) Apply(dbLayer db.Db) {
 	}
 }
 
+// Remove remove un does the migration
 func (PermissionSeeds) Remove(db *mgo.Database) {
 
 }

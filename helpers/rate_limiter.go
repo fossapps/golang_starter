@@ -6,10 +6,7 @@ import (
 	"strconv"
 )
 
-type Claims struct {
-	ID string `json:"id"`
-}
-
+// RedisClient interface need to satisfy for Limiter to work
 type RedisClient interface {
 	ZAdd(key string, members ...redis.Z) (int64, error)
 	ZRemRangeByScore(key, min, max string) (int64, error)
@@ -17,6 +14,7 @@ type RedisClient interface {
 	ZCard(key string) (int64, error)
 }
 
+// Limiter helper for making sure we don't call something too much
 type Limiter struct {
 	RedisClient RedisClient
 	Decay       time.Duration

@@ -1,7 +1,7 @@
-package golang_starter
+package starter
 
 import (
-	"golang_starter/db"
+	"github.com/fossapps/starter/db"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -9,23 +9,27 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
-	"golang_starter/transformers"
+	"github.com/fossapps/starter/transformers"
 )
 
+// NewUser for creating a new user
 type NewUser struct {
 	Email       string   `json:"email"`
 	Password    string   `json:"password"`
 	Permissions []string `json:"permissions"`
 }
 
+// UserAvailabilityResponse is used to respond for availability requests
 type UserAvailabilityResponse struct {
 	Available bool `json:"available"`
 }
 
+// UserAvailabilityRequest used for making request asking if email is available
 type UserAvailabilityRequest struct {
 	Email string `json:"email"`
 }
 
+// Ok returns if user is valid
 func (user NewUser) Ok() bool {
 	if !strings.Contains(user.Email, "@") || (len(user.Password) < 6 && user.Password != "") {
 		return false
@@ -33,6 +37,7 @@ func (user NewUser) Ok() bool {
 	return true
 }
 
+// CreateUser handler used for creating new users
 func (s Server) CreateUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := new(NewUser)
@@ -65,6 +70,7 @@ func (s Server) CreateUser() http.HandlerFunc {
 	})
 }
 
+// ListUsers used for listing all users
 func (s Server) ListUsers() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		database := s.Db.Clone()
@@ -78,6 +84,7 @@ func (s Server) ListUsers() http.HandlerFunc {
 	})
 }
 
+// UserAvailability for checking if a email is already taken
 func (s Server) UserAvailability() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestedUser := new(UserAvailabilityRequest)
@@ -95,10 +102,11 @@ func (s Server) UserAvailability() http.HandlerFunc {
 	})
 }
 
+// EditUser to update information about user
 func (s Server) EditUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := mux.Vars(r)["user"]
-		user := s.Db.Users().FindById(userId)
+		userID := mux.Vars(r)["user"]
+		user := s.Db.Users().FindByID(userID)
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
 			return
@@ -114,7 +122,7 @@ func (s Server) EditUser() http.HandlerFunc {
 			Email:       newUser.Email,
 			Password:    newUser.Password,
 		}
-		err = s.Db.Users().Edit(userId, validUser)
+		err = s.Db.Users().Edit(userID, validUser)
 		if err == mgo.ErrNotFound {
 			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
 			return
@@ -127,10 +135,11 @@ func (s Server) EditUser() http.HandlerFunc {
 	})
 }
 
+// GetUser to get information about a user
 func (s Server) GetUser() http.HandlerFunc {
 	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["user"]
-		user := s.Db.Users().FindById(id)
+		user := s.Db.Users().FindByID(id)
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusNotFound, "not found")
 			return

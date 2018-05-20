@@ -26,6 +26,9 @@ test-unit:
 test-integration:
 	go test -cover -tags integration ./...
 
+lint:
+	go list ./... | grep -v "github.com/fossapps/starter/mocks" | xargs golint -set_exit_status
+
 install:
 	sudo mkdir -p /opt/api_server
 	sudo systemctl stop api.service

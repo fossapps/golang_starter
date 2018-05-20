@@ -1,22 +1,26 @@
 package migrations
 
 import (
-	"golang_starter/db"
+	"github.com/fossapps/starter/db"
 	"fmt"
 
 	"github.com/globalsign/mgo"
 )
 
+// UserSeed seed initial list of users
 type UserSeed struct{}
 
+// GetKey returns key for user seeds
 func (UserSeed) GetKey() string {
 	return "USER_SEED"
 }
 
+// GetDescription returns description for user seeds
 func (UserSeed) GetDescription() string {
 	return "Create default users"
 }
 
+// Apply adds users to database
 func (UserSeed) Apply(dbLayer db.Db) {
 	admin := db.User{
 		Email:       "admin@example.com",
@@ -29,6 +33,7 @@ func (UserSeed) Apply(dbLayer db.Db) {
 	}
 }
 
+// Remove remove un does the migration
 func (UserSeed) Remove(db *mgo.Database) {
 
 }

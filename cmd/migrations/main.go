@@ -1,9 +1,9 @@
 package main
 
 import (
-	"golang_starter/config"
-	"golang_starter/db"
-	"golang_starter/migrations"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/migrations"
 
 	"github.com/globalsign/mgo"
 )

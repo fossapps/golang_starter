@@ -5,8 +5,8 @@ package db_test
 import (
 	"testing"
 
-	"golang_starter/config"
-	"golang_starter/db"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
 
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ func TestUserLayer_FindByIdReturnsNilIfNotExists(t *testing.T) {
 
 	userManager := db.GetUserManager(database)
 	// random id
-	expect.Nil(userManager.FindById("5adbf94839b5b200068fa33e"))
+	expect.Nil(userManager.FindByID("5adbf94839b5b200068fa33e"))
 }
 
 func TestUserLayer_CreateNewUser(t *testing.T) {
@@ -71,7 +71,7 @@ func TestUserLayer_FindById(t *testing.T) {
 		Email:       email,
 	})
 	id := userManager.FindByEmail(email).ID
-	user := userManager.FindById(id.Hex())
+	user := userManager.FindByID(id.Hex())
 	expect.Equal(email, user.Email)
 }
 
@@ -114,7 +114,7 @@ func TestUserLayer_Edit(t *testing.T) {
 	expect.Equal("mail_test@example.com", user.Email)
 	err = userManager.Edit(user.ID.Hex(), db.User{Email: "mail_updated@example.com"})
 	expect.Nil(err)
-	updatedUser := userManager.FindById(user.ID.Hex())
+	updatedUser := userManager.FindByID(user.ID.Hex())
 	expect.Equal("mail_updated@example.com", updatedUser.Email)
 	// expect.Equal("sudo", updatedUser.Permissions[0])
 }

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"golang_starter/config"
+	"github.com/fossapps/starter/config"
 
 	"github.com/globalsign/mgo"
 )
@@ -66,6 +66,7 @@ func (db DatabaseLayer) Migrations() IMigrationManager {
 	return GetMigrationManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
+// Devices returns implementation of IDeviceManager
 func (db DatabaseLayer) Devices() IDeviceManager {
 	return GetDeviceManager(db.session.DB(config.GetMongoConfig().DbName))
 }

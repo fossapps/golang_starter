@@ -1,13 +1,13 @@
-package golang_starter
+package starter
 
 import (
-	"golang_starter/adapters"
+	"github.com/fossapps/starter/adapters"
 
 	"github.com/gorilla/mux"
 	"time"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
-	"golang_starter/helpers"
+	"github.com/fossapps/starter/helpers"
 )
 
 type router struct {
@@ -70,6 +70,7 @@ func (r router) authResource() {
 	r.router.HandleFunc("/session/{token}", r.server.DeleteSession()).Methods("DELETE")
 }
 
+// NewRouter returns a configured router with path and handlers
 func NewRouter(s Server) *mux.Router {
 	muxRouter := mux.NewRouter()
 	routerInstance := router{
@@ -77,7 +78,7 @@ func NewRouter(s Server) *mux.Router {
 		router: muxRouter,
 	}
 	routerInstance.build()
-	limiterOptions := adapters.LimiterOptions{
+	limiterOptions := adapters.LimiterOptions {
 		RequestHelper: routerInstance.server.ReqHelper,
 		Limit:         3,
 		Namespace:     "test",

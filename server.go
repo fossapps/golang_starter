@@ -1,9 +1,9 @@
-package golang_starter
+package starter
 
 import (
-	"golang_starter/config"
-	"golang_starter/db"
-	"golang_starter/helpers"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/helpers"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +15,7 @@ import (
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"golang_starter/adapters"
+	"github.com/fossapps/starter/adapters"
 	"github.com/dgrijalva/jwt-go/request"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
@@ -23,6 +23,7 @@ import (
 	"net"
 )
 
+// ILogger needs to be implemented for a logger to be used on this project
 type ILogger interface {
 	Info(args ...interface{})
 	Fatal(args ...interface{})
@@ -34,19 +35,23 @@ type ILogger interface {
 	Panic(args ...interface{})
 }
 
+// Server is a global struct which holds implementation of different things application depends on.
+// One can think of this as dependency container
 type Server struct {
-	Logger ILogger
-	Db     db.Db
-	Redis  helpers.IRedisClient
-	Pushy  pushy.IPushyClient
+	Logger    ILogger
+	Db        db.Db
+	Redis     helpers.IRedisClient
+	Pushy     pushy.IPushyClient
 	ReqHelper IRequestHelper
 }
 
+// SimpleResponse is used when our handler wants to responds with simple boolean type information, like success, or fail
 type SimpleResponse struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
+// Init actually starts listening and server on a port
 func Init() {
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Access-Control-Request-Headers", "Origin", "authorization"})
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
@@ -54,27 +59,29 @@ func Init() {
 	server := createServer()
 	defer server.cleanup()
 	router := adapters.DevMw(1000)(NewRouter(server))
-	port := strconv.Itoa(config.GetApiPort())
+	port := strconv.Itoa(config.GetAPIPort())
 	server.Logger.Info("Attempting to listen on port " + port)
 	err := http.
-		ListenAndServe(":" + port, handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
+		ListenAndServe(":"+port, handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
 	if err != nil {
 		server.Logger.Fatal(err)
 		panic(err)
 	}
 }
 
+// ErrorResponse util method to indicate failure
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	respond.With(w, r, statusCode, SimpleResponse{
-		Success:false,
+		Success: false,
 		Message: message,
 	})
 	return
 }
 
+// SuccessResponse util method to indicate success
 func (s *Server) SuccessResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	respond.With(w, r, statusCode, SimpleResponse{
-		Success:true,
+		Success: true,
 		Message: message,
 	})
 }
@@ -84,10 +91,10 @@ func createServer() Server {
 	dbLayer := db.GetDbImplementation(session)
 	requestHelper := RequestHelper{}
 	return Server{
-		Logger: getLogger(),
-		Db:     dbLayer,
-		Redis:  *getRedis(),
-		Pushy:  getPushy(),
+		Logger:    getLogger(),
+		Db:        dbLayer,
+		Redis:     *getRedis(),
+		Pushy:     getPushy(),
 		ReqHelper: requestHelper,
 	}
 }
@@ -140,8 +147,10 @@ func (s *Server) cleanup() {
 	s.Redis.Close()
 }
 
-type RequestHelper struct {}
+// RequestHelper simple IRequestHelper implementation
+type RequestHelper struct{}
 
+// GetJwtData util method to get data from request
 func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
 	var claims adapters.Claims
 	token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
@@ -158,7 +167,8 @@ func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
 	return &claims, nil
 }
 
-func (RequestHelper) GetIpAddress(r *http.Request) string {
+// GetIPAddress util method to get IP address from request
+func (RequestHelper) GetIPAddress(r *http.Request) string {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return ""
@@ -166,14 +176,15 @@ func (RequestHelper) GetIpAddress(r *http.Request) string {
 	return ip
 }
 
+// IRequestHelper interface to implement to satisfy as a Request Helper for this application
 type IRequestHelper interface {
 	GetJwtData(r *http.Request) (*adapters.Claims, error)
-	GetIpAddress(r *http.Request) string
+	GetIPAddress(r *http.Request) string
 }
 
 func signingFunc(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, errors.New(fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 	}
 	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }
