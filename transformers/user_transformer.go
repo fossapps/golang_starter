@@ -7,17 +7,17 @@ import (
 
 // ResponseUser response friendly version of db.User
 type ResponseUser struct {
-	ID          bson.ObjectId   `json:"id"`
-	Email       string   `json:"email"`
-	Permissions []string `json:"permissions"`
+	ID          bson.ObjectId `json:"id"`
+	Email       string        `json:"email"`
+	Permissions []string      `json:"permissions"`
 }
 
 // TransformUser takes db data and returns response friendly data
 func TransformUser(user db.User) ResponseUser {
 	return ResponseUser{
-		ID: user.ID,
+		ID:          user.ID,
 		Permissions: user.Permissions,
-		Email: user.Email,
+		Email:       user.Email,
 	}
 }
 

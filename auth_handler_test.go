@@ -11,9 +11,9 @@ import (
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/mocks"
 
+	"errors"
 	"github.com/fossapps/starter/adapters"
 	"github.com/fossapps/starter/config"
-	"errors"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"

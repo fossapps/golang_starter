@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"time"
 	"github.com/go-redis/redis"
 	"strconv"
+	"time"
 )
 
 // RedisClient interface need to satisfy for Limiter to work

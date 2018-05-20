@@ -3,7 +3,6 @@ package starter
 import (
 	"encoding/json"
 	"net/http"
-
 )
 
 // NewRegistration used for making a registration request

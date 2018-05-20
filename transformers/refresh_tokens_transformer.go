@@ -11,7 +11,7 @@ type ResponseRefreshToken struct {
 // TransformRefreshToken takes db data and returns response friendly data
 func TransformRefreshToken(item db.RefreshToken) ResponseRefreshToken {
 	return ResponseRefreshToken{
-		User: item.User,
+		User:  item.User,
 		Token: item.Token,
 	}
 }

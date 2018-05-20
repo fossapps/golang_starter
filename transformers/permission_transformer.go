@@ -11,7 +11,7 @@ type ResponsePermission struct {
 // TransformPermission takes db data and returns response friendly data
 func TransformPermission(permission db.Permission) ResponsePermission {
 	return ResponsePermission{
-		Key: permission.Key,
+		Key:         permission.Key,
 		Description: permission.Description,
 	}
 }

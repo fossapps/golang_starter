@@ -1,8 +1,8 @@
 package migrations
 
 import (
-	"github.com/fossapps/starter/db"
 	"fmt"
+	"github.com/fossapps/starter/db"
 
 	"github.com/globalsign/mgo"
 )

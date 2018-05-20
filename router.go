@@ -3,11 +3,11 @@ package starter
 import (
 	"github.com/fossapps/starter/adapters"
 
-	"github.com/gorilla/mux"
-	"time"
-	"net/http"
-	"gopkg.in/matryer/respond.v1"
 	"github.com/fossapps/starter/helpers"
+	"github.com/gorilla/mux"
+	"gopkg.in/matryer/respond.v1"
+	"net/http"
+	"time"
 )
 
 type router struct {
@@ -78,15 +78,15 @@ func NewRouter(s Server) *mux.Router {
 		router: muxRouter,
 	}
 	routerInstance.build()
-	limiterOptions := adapters.LimiterOptions {
+	limiterOptions := adapters.LimiterOptions{
 		RequestHelper: routerInstance.server.ReqHelper,
 		Limit:         3,
 		Namespace:     "test",
 		AddHeaders:    true,
-		Logger: s.Logger,
+		Logger:        s.Logger,
 		Limiter: helpers.Limiter{
-			Decay: 10 * time.Second,
-			Limit: 3,
+			Decay:       10 * time.Second,
+			Limit:       3,
 			RedisClient: routerInstance.server.Redis,
 		},
 	}

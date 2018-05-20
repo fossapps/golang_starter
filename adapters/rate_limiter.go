@@ -1,8 +1,8 @@
 package adapters
 
 import (
-	"net/http"
 	"gopkg.in/matryer/respond.v1"
+	"net/http"
 	"strconv"
 )
 
