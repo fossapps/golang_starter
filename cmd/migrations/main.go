@@ -1,9 +1,9 @@
 package main
 
 import (
-	"golang_starter/config"
-	"golang_starter/db"
-	"golang_starter/migrations"
+	"starter/config"
+	"starter/db"
+	"starter/migrations"
 
 	"github.com/globalsign/mgo"
 )

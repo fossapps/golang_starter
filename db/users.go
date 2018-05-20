@@ -9,7 +9,7 @@ import (
 // IUserManager deals with anything related to User Persistence
 type IUserManager interface {
 	FindByEmail(email string) *User
-	FindById(id string) *User
+	FindByID(id string) *User
 	Create(user User) error
 	List() ([]User, error)
 	Edit(id string, user User) error
@@ -40,8 +40,8 @@ func (dbLayer UserLayer) FindByEmail(email string) *User {
 	return &user
 }
 
-// FindById given id of user, returns a User
-func (dbLayer UserLayer) FindById(id string) *User {
+// FindByID given id of user, returns a User
+func (dbLayer UserLayer) FindByID(id string) *User {
 	user := new(User)
 	dbLayer.db.C("users").Find(bson.M{
 		"_id": bson.ObjectIdHex(id),
@@ -61,7 +61,7 @@ func (dbLayer UserLayer) Create(user User) error {
 
 // List users
 func (dbLayer UserLayer) List() ([]User, error) {
-	var users []User = nil
+	var users []User
 	err := dbLayer.db.C("users").Find(nil).All(&users)
 	return users, err
 }

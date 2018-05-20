@@ -1,7 +1,7 @@
 package main
 
-import "golang_starter"
+import "starter"
 
 func main() {
-	golang_starter.Init()
+	starter.Init()
 }

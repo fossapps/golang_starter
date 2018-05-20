@@ -1,8 +1,8 @@
 package adapters_test
 
 import (
-	"golang_starter/adapters"
-	"golang_starter/config"
+	"starter/adapters"
+	"starter/config"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"

@@ -1,4 +1,4 @@
-package golang_starter
+package starter
 
 import (
 	"crypto/rand"
@@ -7,26 +7,29 @@ import (
 	"strings"
 	"time"
 
-	"golang_starter/config"
-	"golang_starter/db"
+	"starter/config"
+	"starter/db"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
+	"starter/transformers"
 	"gopkg.in/matryer/respond.v1"
-	"golang_starter/transformers"
 )
 
+// LoginResponse responds with this type when login is successful
 type LoginResponse struct {
 	JWT          string `json:"jwt"`
 	RefreshToken string `json:"refresh_token"`
 }
 
+// RefreshTokenHandlerResponse is used when a refresh token is requested
 type RefreshTokenHandlerResponse struct {
 	JWT string `json:"jwt"`
 }
 
+// LoginHandler handles login requests
 func (s *Server) LoginHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email, password, ok := r.BasicAuth()
@@ -66,6 +69,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 	})
 }
 
+// RefreshTokenHandler is used to refresh token
 func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -81,7 +85,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "refresh token invalid")
 			return
 		}
-		user := dbLayer.Users().FindById(refreshToken.User)
+		user := dbLayer.Users().FindByID(refreshToken.User)
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
 			return
@@ -99,6 +103,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 	})
 }
 
+// RefreshTokensList returns list of refresh token associated with a user
 func (s *Server) RefreshTokensList() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		claims, err := s.ReqHelper.GetJwtData(r)
@@ -117,6 +122,7 @@ func (s *Server) RefreshTokensList() http.HandlerFunc {
 	})
 }
 
+// DeleteSession deletes a session, used for logging out
 func (s *Server) DeleteSession() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := mux.Vars(r)["token"]

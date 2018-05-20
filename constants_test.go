@@ -1,9 +1,9 @@
-package golang_starter_test
+package starter_test
 
 import (
 	"testing"
 
-	"golang_starter"
+	"starter"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,6 +11,6 @@ import (
 // this file is just for the sake of coverage
 
 func TestConst(t *testing.T) {
-	constants := golang_starter.Const()
+	constants := starter.Const()
 	assert.NotNil(t, constants)
 }

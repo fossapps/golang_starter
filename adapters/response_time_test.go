@@ -1,7 +1,7 @@
 package adapters_test
 
 import (
-	"golang_starter/adapters"
+	"starter/adapters"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"

@@ -1,9 +1,9 @@
 // +build integration
 
-package golang_starter_test
+package starter_test
 
 import (
-	"golang_starter/config"
+	"starter/config"
 	"testing"
 
 	"github.com/globalsign/mgo"

@@ -5,8 +5,8 @@ package db_test
 import (
 	"testing"
 	"github.com/globalsign/mgo"
-	"golang_starter/config"
-	"golang_starter/db"
+	"starter/config"
+	"starter/db"
 	"github.com/stretchr/testify/assert"
 )
 

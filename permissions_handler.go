@@ -1,12 +1,13 @@
-package golang_starter
+package starter
 
 import (
 	"net/http"
 
 	"gopkg.in/matryer/respond.v1"
-	"golang_starter/transformers"
+	"starter/transformers"
 )
 
+// ListPermissions is handler for listing permissions
 func (s *Server) ListPermissions() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := s.Db.Clone()

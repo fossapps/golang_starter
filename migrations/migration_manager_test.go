@@ -3,8 +3,8 @@ package migrations_test
 import (
 	"testing"
 
-	"golang_starter/migrations"
-	"golang_starter/mocks"
+	"starter/migrations"
+	"starter/mocks"
 
 	"github.com/golang/mock/gomock"
 )

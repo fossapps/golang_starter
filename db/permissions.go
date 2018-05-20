@@ -47,7 +47,7 @@ func (pLayer permissionLayer) Exists(key string) bool {
 
 // List all permissions available
 func (pLayer permissionLayer) List() ([]Permission, error) {
-	var permission []Permission = nil
+	var permission []Permission
 	err := pLayer.db.C("permissions").Find(nil).All(&permission)
 	return permission, err
 }

@@ -2,6 +2,7 @@ package workers
 
 import "github.com/cyberhck/captain"
 
+// ICronJob any cron must satisfy this permission to run
 type ICronJob interface {
 	Job() captain.Worker
 	LockProvider() captain.LockProvider
@@ -10,6 +11,7 @@ type ICronJob interface {
 	ShouldRun(key string) bool
 }
 
+// Run a particular job
 func Run(key string, task ICronJob) {
 	if !task.ShouldRun(key) {
 		return

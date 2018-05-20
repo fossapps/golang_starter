@@ -17,7 +17,7 @@ before_install:
 jobs:
   include:
     - stage: code style
-    - script: golint -set_exit_status && go vet
+    - script: make lint && go vet
     - stage: test
     - script: make migrate && make test && make test-integration && make build
 stages:

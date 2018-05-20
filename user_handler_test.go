@@ -1,10 +1,10 @@
-package golang_starter_test
+package starter_test
 
 import (
 	"bytes"
-	"golang_starter"
-	"golang_starter/db"
-	"golang_starter/mocks"
+	"starter"
+	"starter/db"
+	"starter/mocks"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/globalsign/mgo/bson"
-	"golang_starter/transformers"
+	"starter/transformers"
 )
 
 // region User.Create
@@ -24,7 +24,7 @@ func TestServer_CreateUserReturnsBadRequestIfNoBody(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
-	golang_starter.Server{}.CreateUser()(responseRecorder, request)
+	starter.Server{}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
@@ -32,12 +32,12 @@ func TestServer_CreateUserReturnsBadRequestIfUserIsInvalid(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(golang_starter.NewUser{
+	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email:    "invalid",
 		Password: "pass",
 	})
 	request := httptest.NewRequest("POST", "/", buffer)
-	golang_starter.Server{}.CreateUser()(responseRecorder, request)
+	starter.Server{}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
@@ -45,7 +45,7 @@ func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
-	mockUser := golang_starter.NewUser{
+	mockUser := starter.NewUser{
 		Email:    "user@example.com",
 		Password: "password",
 	}
@@ -66,14 +66,14 @@ func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	golang_starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
+	starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusConflict, responseRecorder.Code)
 }
 func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
-	mockUser := golang_starter.NewUser{
+	mockUser := starter.NewUser{
 		Email:    "user@example.com",
 		Password: "password",
 	}
@@ -92,7 +92,7 @@ func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	golang_starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
+	starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
 }
 
@@ -100,7 +100,7 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	buffer := new(bytes.Buffer)
-	mockUser := golang_starter.NewUser{
+	mockUser := starter.NewUser{
 		Email:    "user@example.com",
 		Password: "password",
 	}
@@ -119,7 +119,7 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
-	golang_starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
+	starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
 	expect.Equal(http.StatusCreated, responseRecorder.Code)
 }
 
@@ -140,7 +140,7 @@ func TestServer_ListUsersReturnsInternalServerErrorIfDbError(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	golang_starter.Server{
+	starter.Server{
 		Db: mockDb,
 	}.ListUsers()(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
@@ -168,7 +168,7 @@ func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	golang_starter.Server{
+	starter.Server{
 		Db: mockDb,
 	}.ListUsers()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
@@ -184,7 +184,7 @@ func TestServer_UserAvailabilityRespondsWithBadRequestIfRequestInvalid(t *testin
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
-	golang_starter.Server{}.UserAvailability()(responseRecorder, request)
+	starter.Server{}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
@@ -208,9 +208,9 @@ func TestServer_UserAvailabilityReturnsFalseIfUnavailable(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(&mockUser)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
-	golang_starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
+	starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	response := new(golang_starter.UserAvailabilityResponse)
+	response := new(starter.UserAvailabilityResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
 	expect.False(response.Available)
 }
@@ -235,9 +235,9 @@ func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
-	golang_starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
+	starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
-	response := new(golang_starter.UserAvailabilityResponse)
+	response := new(starter.UserAvailabilityResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
 	expect.True(response.Available)
 }
@@ -256,11 +256,11 @@ func TestServer_EditUserErrorIfUserDoesNotExist(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUser := mocks.NewMockIUserManager(userCtrl)
-	mockUser.EXPECT().FindById("id").Return(nil)
+	mockUser.EXPECT().FindByID("id").Return(nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
@@ -280,19 +280,19 @@ func TestServer_EditUserErrorIfUserIsInvalid(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUser := mocks.NewMockIUserManager(userCtrl)
-	mockUser.EXPECT().FindById("id").Return(&db.User{
+	mockUser.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
 	})
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(golang_starter.NewUser{
+	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email.example.com",
 	})
 	responseRecorder := httptest.NewRecorder()
@@ -311,7 +311,7 @@ func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUserManager := mocks.NewMockIUserManager(userCtrl)
-	mockUserManager.EXPECT().FindById("id").Return(&db.User{
+	mockUserManager.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
 	})
@@ -319,12 +319,12 @@ func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(golang_starter.NewUser{
+	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email@example.com",
 	})
 	responseRecorder := httptest.NewRecorder()
@@ -343,7 +343,7 @@ func TestServer_EditUserHandlesDbError(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUserManager := mocks.NewMockIUserManager(userCtrl)
-	mockUserManager.EXPECT().FindById("id").Return(&db.User{
+	mockUserManager.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
 	})
@@ -351,12 +351,12 @@ func TestServer_EditUserHandlesDbError(t *testing.T) {
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(golang_starter.NewUser{
+	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email@example.com",
 	})
 	responseRecorder := httptest.NewRecorder()
@@ -375,7 +375,7 @@ func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUserManager := mocks.NewMockIUserManager(userCtrl)
-	mockUserManager.EXPECT().FindById("id").AnyTimes().Return(&db.User{
+	mockUserManager.EXPECT().FindByID("id").AnyTimes().Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
 	})
@@ -383,12 +383,12 @@ func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(golang_starter.NewUser{
+	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email:    "new_email@example.com",
 		Password: "",
 	})
@@ -412,11 +412,11 @@ func TestServer_UserGetReturnsStatusNotFoundWhenUserDoesNotExist(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUser := mocks.NewMockIUserManager(userCtrl)
-	mockUser.EXPECT().FindById("id").Return(nil)
+	mockUser.EXPECT().FindByID("id").Return(nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.GetUser()).Methods("GET")
@@ -441,11 +441,11 @@ func TestServer_GetUserReturnsUser(t *testing.T) {
 		Email: "example@admin.com",
 		Permissions:[]string{"users.create"},
 	}
-	mockUser.EXPECT().FindById("id").Return(&dbUser)
+	mockUser.EXPECT().FindByID("id").Return(&dbUser)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
-	server := golang_starter.Server{
+	server := starter.Server{
 		Db: mockDb,
 	}
 	router.HandleFunc("/users/{user}", server.GetUser()).Methods("GET")

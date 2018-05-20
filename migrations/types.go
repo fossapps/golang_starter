@@ -1,11 +1,12 @@
 package migrations
 
 import (
-	"golang_starter/db"
+	"starter/db"
 
 	"github.com/globalsign/mgo"
 )
 
+// IMigration interface to implement for a migration
 type IMigration interface {
 	GetKey() string
 	GetDescription() string

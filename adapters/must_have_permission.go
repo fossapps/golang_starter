@@ -1,10 +1,9 @@
 package adapters
 
 import (
-	"errors"
 	"net/http"
 
-	"golang_starter/config"
+	"starter/config"
 
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
@@ -12,6 +11,7 @@ import (
 	"gopkg.in/matryer/respond.v1"
 )
 
+// Claims data which is stored in JWT
 type Claims struct {
 	Email       string   `json:"email"`
 	ID          string   `json:"id"`
@@ -21,11 +21,12 @@ type Claims struct {
 
 func signingFunc(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, errors.New(fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 	}
 	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }
 
+// MustHavePermission is a adapter which ensures a request has permission before handler is invoked
 func MustHavePermission(permission string) Adapter {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {

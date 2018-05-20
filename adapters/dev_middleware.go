@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// DevMw simple middleware to delay a request
 func DevMw(milliseconds int) Adapter {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
