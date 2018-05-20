@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"starter"
-	"starter/db"
-	"starter/mocks"
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/mocks"
 
-	"starter/adapters"
-	"starter/config"
+	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/config"
 	"errors"
 	"time"
 

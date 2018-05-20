@@ -3,7 +3,7 @@ package migrations
 import (
 	"fmt"
 
-	"starter/db"
+	"github.com/fossapps/starter/db"
 )
 
 // ApplyAll applies all migration to a specific database

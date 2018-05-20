@@ -1,6 +1,6 @@
 package transformers
 
-import "starter/db"
+import "github.com/fossapps/starter/db"
 
 // ResponseRefreshToken is response friendly db.RefreshToken
 type ResponseRefreshToken struct {

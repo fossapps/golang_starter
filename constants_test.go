@@ -3,7 +3,7 @@ package starter_test
 import (
 	"testing"
 
-	"starter"
+	"github.com/fossapps/starter"
 
 	"github.com/stretchr/testify/assert"
 )

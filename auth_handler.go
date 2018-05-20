@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"starter/config"
-	"starter/db"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
-	"starter/transformers"
+	"github.com/fossapps/starter/transformers"
 	"gopkg.in/matryer/respond.v1"
 )
 

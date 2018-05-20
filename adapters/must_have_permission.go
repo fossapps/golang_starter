@@ -3,7 +3,7 @@ package adapters
 import (
 	"net/http"
 
-	"starter/config"
+	"github.com/fossapps/starter/config"
 
 	"fmt"
 	"github.com/dgrijalva/jwt-go"

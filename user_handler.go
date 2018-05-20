@@ -1,7 +1,7 @@
 package starter
 
 import (
-	"starter/db"
+	"github.com/fossapps/starter/db"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
-	"starter/transformers"
+	"github.com/fossapps/starter/transformers"
 )
 
 // NewUser for creating a new user

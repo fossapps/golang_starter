@@ -1,7 +1,7 @@
 package db
 
 import (
-	"starter/config"
+	"github.com/fossapps/starter/config"
 
 	"github.com/globalsign/mgo"
 )

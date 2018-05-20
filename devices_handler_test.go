@@ -10,13 +10,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"starter/mocks"
+	"github.com/fossapps/starter/mocks"
 
 	"github.com/cyberhck/pushy"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"starter"
+	"github.com/fossapps/starter"
 )
 
 func TestServer_RegisterHandlerReturnsBadRequestRequestIfJsonInvalid(t *testing.T) {

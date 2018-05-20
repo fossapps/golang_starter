@@ -2,10 +2,10 @@ package helpers_test
 
 import (
 	"testing"
-	"starter/helpers"
+	"github.com/fossapps/starter/helpers"
 	"time"
 	"github.com/golang/mock/gomock"
-	"starter/mocks"
+	"github.com/fossapps/starter/mocks"
 	"github.com/stretchr/testify/assert"
 	"errors"
 )

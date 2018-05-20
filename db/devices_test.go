@@ -5,8 +5,8 @@ package db_test
 import (
 	"testing"
 	"github.com/globalsign/mgo"
-	"starter/config"
-	"starter/db"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
 	"github.com/stretchr/testify/assert"
 )
 

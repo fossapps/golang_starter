@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"gopkg.in/matryer/respond.v1"
-	"starter/transformers"
+	"github.com/fossapps/starter/transformers"
 )
 
 // ListPermissions is handler for listing permissions

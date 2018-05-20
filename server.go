@@ -1,9 +1,9 @@
 package starter
 
 import (
-	"starter/config"
-	"starter/db"
-	"starter/helpers"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/helpers"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +15,7 @@ import (
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"starter/adapters"
+	"github.com/fossapps/starter/adapters"
 	"github.com/dgrijalva/jwt-go/request"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
@@ -38,16 +38,16 @@ type ILogger interface {
 // Server is a global struct which holds implementation of different things application depends on.
 // One can think of this as dependency container
 type Server struct {
-	Logger ILogger
-	Db     db.Db
-	Redis  helpers.IRedisClient
-	Pushy  pushy.IPushyClient
+	Logger    ILogger
+	Db        db.Db
+	Redis     helpers.IRedisClient
+	Pushy     pushy.IPushyClient
 	ReqHelper IRequestHelper
 }
 
 // SimpleResponse is used when our handler wants to responds with simple boolean type information, like success, or fail
 type SimpleResponse struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
@@ -62,7 +62,7 @@ func Init() {
 	port := strconv.Itoa(config.GetAPIPort())
 	server.Logger.Info("Attempting to listen on port " + port)
 	err := http.
-		ListenAndServe(":" + port, handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
+		ListenAndServe(":"+port, handlers.CORS(allowedHeaders, allowedOrigins, allowedMethods)(router))
 	if err != nil {
 		server.Logger.Fatal(err)
 		panic(err)
@@ -72,7 +72,7 @@ func Init() {
 // ErrorResponse util method to indicate failure
 func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	respond.With(w, r, statusCode, SimpleResponse{
-		Success:false,
+		Success: false,
 		Message: message,
 	})
 	return
@@ -81,7 +81,7 @@ func (s *Server) ErrorResponse(w http.ResponseWriter, r *http.Request, statusCod
 // SuccessResponse util method to indicate success
 func (s *Server) SuccessResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	respond.With(w, r, statusCode, SimpleResponse{
-		Success:true,
+		Success: true,
 		Message: message,
 	})
 }
@@ -91,10 +91,10 @@ func createServer() Server {
 	dbLayer := db.GetDbImplementation(session)
 	requestHelper := RequestHelper{}
 	return Server{
-		Logger: getLogger(),
-		Db:     dbLayer,
-		Redis:  *getRedis(),
-		Pushy:  getPushy(),
+		Logger:    getLogger(),
+		Db:        dbLayer,
+		Redis:     *getRedis(),
+		Pushy:     getPushy(),
 		ReqHelper: requestHelper,
 	}
 }
@@ -148,7 +148,7 @@ func (s *Server) cleanup() {
 }
 
 // RequestHelper simple IRequestHelper implementation
-type RequestHelper struct {}
+type RequestHelper struct{}
 
 // GetJwtData util method to get data from request
 func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {

@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"starter/db"
+	"github.com/fossapps/starter/db"
 	"github.com/globalsign/mgo/bson"
 )
 

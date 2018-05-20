@@ -1,6 +1,6 @@
 package main
 
-import "starter"
+import "github.com/fossapps/starter"
 
 func main() {
 	starter.Init()

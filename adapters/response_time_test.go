@@ -1,7 +1,7 @@
 package adapters_test
 
 import (
-	"starter/adapters"
+	"github.com/fossapps/starter/adapters"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"

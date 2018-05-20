@@ -2,9 +2,9 @@ package starter_test
 
 import (
 	"bytes"
-	"starter"
-	"starter/db"
-	"starter/mocks"
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/mocks"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/globalsign/mgo/bson"
-	"starter/transformers"
+	"github.com/fossapps/starter/transformers"
 )
 
 // region User.Create

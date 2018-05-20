@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"starter"
-	"starter/db"
-	"starter/mocks"
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

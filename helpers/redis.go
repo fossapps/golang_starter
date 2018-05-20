@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"starter/config"
+	"github.com/fossapps/starter/config"
 	"github.com/go-redis/redis"
 	"time"
 )

@@ -1,6 +1,6 @@
 package transformers
 
-import "starter/db"
+import "github.com/fossapps/starter/db"
 
 // ResponsePermission response friendly version of db.Permission
 type ResponsePermission struct {

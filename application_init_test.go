@@ -3,7 +3,7 @@
 package starter_test
 
 import (
-	"starter/config"
+	"github.com/fossapps/starter/config"
 	"testing"
 
 	"github.com/globalsign/mgo"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"starter/config"
-	"starter/db"
-	"starter/migrations"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/migrations"
 
 	"github.com/globalsign/mgo"
 )

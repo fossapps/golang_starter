@@ -1,13 +1,13 @@
 package starter
 
 import (
-	"starter/adapters"
+	"github.com/fossapps/starter/adapters"
 
 	"github.com/gorilla/mux"
 	"time"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
-	"starter/helpers"
+	"github.com/fossapps/starter/helpers"
 )
 
 type router struct {

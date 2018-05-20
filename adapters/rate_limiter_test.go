@@ -3,8 +3,8 @@ package adapters_test
 import (
 	"testing"
 	"github.com/golang/mock/gomock"
-	"starter/mocks"
-	"starter/adapters"
+	"github.com/fossapps/starter/mocks"
+	"github.com/fossapps/starter/adapters"
 	"net/http"
 	"gopkg.in/matryer/respond.v1"
 	"errors"
