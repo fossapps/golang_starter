@@ -3,22 +3,21 @@ services:
   - docker
 language: go
 go:
-  - "1.8"
   - "1.9"
   - "1.10"
   - "tip"
 before_install:
   - go get -u github.com/golang/dep/cmd/dep
   - go get -u golang.org/x/lint/golint
+  - cd .. && mv golang_starter starter && cd starter
   - dep ensure
-  - docker-compose up -d
   - cp .env.example .env
 jobs:
   include:
     - stage: code style
     - script: make lint && go vet
     - stage: test
-    - script: make migrate && make test && make test-integration && make build
+    - script: docker-compose up -d && make test && make migrate && make test-integration && make build
 stages:
   - code style
   - test
