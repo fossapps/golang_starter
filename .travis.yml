@@ -12,6 +12,7 @@ before_install:
   - go get -u golang.org/x/lint/golint
   - dep ensure
   - docker-compose up -d
+  - cp .env.example .env
 jobs:
   include:
     - stage: code style
