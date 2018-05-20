@@ -11,10 +11,10 @@ import (
 	"github.com/fossapps/starter/db"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/fossapps/starter/transformers"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/fossapps/starter/transformers"
 	"gopkg.in/matryer/respond.v1"
 )
 

@@ -1,15 +1,15 @@
 package adapters_test
 
 import (
-	"testing"
-	"github.com/golang/mock/gomock"
-	"github.com/fossapps/starter/mocks"
-	"github.com/fossapps/starter/adapters"
-	"net/http"
-	"gopkg.in/matryer/respond.v1"
 	"errors"
-	"net/http/httptest"
+	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/matryer/respond.v1"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 // region setup data

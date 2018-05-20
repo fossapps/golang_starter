@@ -1,9 +1,9 @@
 package adapters_test
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/fossapps/starter/adapters"
 	"github.com/fossapps/starter/config"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
 	"net/http"

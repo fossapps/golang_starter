@@ -8,18 +8,18 @@ import (
 	"strconv"
 	"time"
 
+	"errors"
+	"fmt"
 	"github.com/cyberhck/pushy"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
+	"github.com/fossapps/starter/adapters"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/handlers"
 	"github.com/multiplay/go-slack/chat"
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/fossapps/starter/adapters"
-	"github.com/dgrijalva/jwt-go/request"
-	"errors"
-	"github.com/dgrijalva/jwt-go"
-	"fmt"
 	"net"
 )
 

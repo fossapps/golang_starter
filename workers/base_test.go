@@ -1,9 +1,9 @@
 package workers_test
 
 import (
+	"github.com/cyberhck/captain"
 	"github.com/fossapps/starter/mocks"
 	"github.com/fossapps/starter/workers"
-	"github.com/cyberhck/captain"
 	"github.com/golang/mock/gomock"
 	"testing"
 )

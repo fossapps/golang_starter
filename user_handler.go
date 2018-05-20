@@ -1,15 +1,15 @@
 package starter
 
 import (
-	"github.com/fossapps/starter/db"
 	"encoding/json"
+	"github.com/fossapps/starter/db"
 	"net/http"
 	"strings"
 
+	"github.com/fossapps/starter/transformers"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/fossapps/starter/transformers"
 )
 
 // NewUser for creating a new user
@@ -137,7 +137,7 @@ func (s Server) EditUser() http.HandlerFunc {
 
 // GetUser to get information about a user
 func (s Server) GetUser() http.HandlerFunc {
-	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["user"]
 		user := s.Db.Users().FindByID(id)
 		if user == nil {

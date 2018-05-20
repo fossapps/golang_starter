@@ -3,8 +3,8 @@ package starter
 import (
 	"net/http"
 
-	"gopkg.in/matryer/respond.v1"
 	"github.com/fossapps/starter/transformers"
+	"gopkg.in/matryer/respond.v1"
 )
 
 // ListPermissions is handler for listing permissions

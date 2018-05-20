@@ -2,21 +2,21 @@ package starter_test
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"github.com/fossapps/starter"
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/mocks"
-	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fossapps/starter/transformers"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/globalsign/mgo/bson"
-	"github.com/fossapps/starter/transformers"
 )
 
 // region User.Create
@@ -151,7 +151,7 @@ func TestServer_ListUsersReturnsListOfUsers(t *testing.T) {
 		{Email: "mail@example.com", Permissions: []string{"sudo"}, Password: ""},
 		{Email: "mail2@example.com", Permissions: []string{"sudo"}, Password: ""},
 	}
-	expectedUsers := []transformers.ResponseUser {
+	expectedUsers := []transformers.ResponseUser{
 		{Email: "mail@example.com", Permissions: []string{"sudo"}},
 		{Email: "mail2@example.com", Permissions: []string{"sudo"}},
 	}
@@ -437,9 +437,9 @@ func TestServer_GetUserReturnsUser(t *testing.T) {
 	defer userCtrl.Finish()
 	mockUser := mocks.NewMockIUserManager(userCtrl)
 	dbUser := db.User{
-		ID: bson.NewObjectId(),
-		Email: "example@admin.com",
-		Permissions:[]string{"users.create"},
+		ID:          bson.NewObjectId(),
+		Email:       "example@admin.com",
+		Permissions: []string{"users.create"},
 	}
 	mockUser.EXPECT().FindByID("id").Return(&dbUser)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
@@ -458,4 +458,5 @@ func TestServer_GetUserReturnsUser(t *testing.T) {
 	expect.Equal("example@admin.com", responseUser.Email)
 	expect.Equal(dbUser.ID.Hex(), responseUser.ID.Hex())
 }
+
 // endregion

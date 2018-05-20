@@ -1,8 +1,8 @@
 package adapters_test
 
 import (
-	"github.com/fossapps/starter/adapters"
 	"fmt"
+	"github.com/fossapps/starter/adapters"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
 	"net/http"

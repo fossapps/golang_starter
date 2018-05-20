@@ -7,7 +7,7 @@ import (
 )
 
 // TestWorker a sample worker
-type TestWorker struct {}
+type TestWorker struct{}
 
 // LockProvider no lock provider implementation for now
 func (job TestWorker) LockProvider() captain.LockProvider {

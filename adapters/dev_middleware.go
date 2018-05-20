@@ -1,8 +1,8 @@
 package adapters
 
 import (
-	"net/http"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
