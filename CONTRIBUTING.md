@@ -16,7 +16,7 @@ Once the issue is labelled as "accepted", it should already contain enough infor
 if there's none present, one can always ask by commenting, you can start working on it after you mention so in the issue.
 This is to eliminate conflicting and duplicate work.
 
-If you're new to this repository, looking for issue labeled with "Good First Issue" is a good idea.
+If you're new to this repository, looking for issue labeled with "Good First Issue" will be a good idea.
 
 
 To begin contributing:
@@ -27,7 +27,9 @@ To begin contributing:
 
 Get the code
 
-    go get github.com/cyberhck/pushy
+    git clone git@github.com:<your username>/golang_starter.git starter
+
+Make sure you clone inside `$GOPATH/src/github.com/<username>/starter` (change name to from golang_starter to starter)
 
 Get dependencies (we use dep for this project):
 
@@ -39,7 +41,7 @@ Copy example env:
 
 Start Docker
 
-    docker-compose up // can pass -d if you don't want to use new tab)
+    docker-compose up // can pass -d if you don't want to use new terminal later)
 
 Run migrations
 
