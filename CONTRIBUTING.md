@@ -1,6 +1,6 @@
 # Contributing
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+:+1: :tada: First off, thanks for taking the time to contribute! :tada: :+1:
 
 We love pull requests from everyone. By participating in this project, you
 agree to abide by the thoughtbot [code of conduct].
@@ -29,7 +29,7 @@ Get the code
 
     git clone git@github.com:<your username>/golang_starter.git starter
 
-Make sure you clone inside `$GOPATH/src/github.com/<username>/starter` (change name to from golang_starter to starter)
+Make sure you clone inside `$GOPATH/src/github.com/fossapps/starter` (change name to from golang_starter to starter)
 
 Get dependencies (we use dep for this project):
 
@@ -61,7 +61,7 @@ Make your change (follow TDD whereever possible). Make the tests & lint pass:
 
 Push to your fork and [submit a pull request][pr].
 
-[pr]: https://github.com/cyberhck/pushy/compare/
+[pr]: https://github.com/fossapps/golang_starter/compare/
 
 At this point you're waiting for review which hopefully doesn't take long.
 
