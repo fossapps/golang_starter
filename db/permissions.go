@@ -13,20 +13,20 @@ type Permission struct {
 	Description string `json:"description"`
 }
 
-// IPermissionManager deals with Permission persistence
-type IPermissionManager interface {
+// PermissionManager deals with Permission persistence
+type PermissionManager interface {
 	Create(key string, description string) error
 	Exists(key string) bool
 	List() ([]Permission, error)
 }
 
-// PermissionLayer struct which implements IPermissionManager
-type permissionLayer struct {
+// permissionManager struct which implements PermissionManager
+type permissionManager struct {
 	db *mgo.Database
 }
 
 // Create a permission given key and description
-func (pLayer permissionLayer) Create(key string, description string) error {
+func (pLayer permissionManager) Create(key string, description string) error {
 	if pLayer.Exists(key) {
 		return errors.New("permission already exists")
 	}
@@ -37,7 +37,7 @@ func (pLayer permissionLayer) Create(key string, description string) error {
 }
 
 // Exists returns weather or not a permission already exists
-func (pLayer permissionLayer) Exists(key string) bool {
+func (pLayer permissionManager) Exists(key string) bool {
 	var perm Permission
 	pLayer.db.C("permissions").Find(bson.M{
 		"key": key,
@@ -46,15 +46,15 @@ func (pLayer permissionLayer) Exists(key string) bool {
 }
 
 // List all permissions available
-func (pLayer permissionLayer) List() ([]Permission, error) {
+func (pLayer permissionManager) List() ([]Permission, error) {
 	var permission []Permission
 	err := pLayer.db.C("permissions").Find(nil).All(&permission)
 	return permission, err
 }
 
-// GetPermissionManager returns an implementation of IPermissionManager
-func GetPermissionManager(db *mgo.Database) IPermissionManager {
-	return permissionLayer{
+// GetPermissionManager returns an implementation of PermissionManager
+func GetPermissionManager(db *mgo.Database) PermissionManager {
+	return permissionManager{
 		db: db,
 	}
 }

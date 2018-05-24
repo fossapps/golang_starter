@@ -14,21 +14,21 @@ import (
 
 // region setup data
 
-func getMockRequestHelper(t *testing.T) *mocks.MockIRequestHelper {
+func getMockRequestHelper(t *testing.T) *mocks.MockRequestHelper {
 	ctrl := gomock.NewController(t)
-	return mocks.NewMockIRequestHelper(ctrl)
+	return mocks.NewMockRequestHelper(ctrl)
 }
 
-func getMockLogger(t *testing.T) *mocks.MockILogger {
-	mockLogger := mocks.NewMockILogger(gomock.NewController(t))
+func getMockLogger(t *testing.T) *mocks.MockLogger {
+	mockLogger := mocks.NewMockLogger(gomock.NewController(t))
 	mockLogger.EXPECT().Warn(gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Error(gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warning(gomock.Any()).AnyTimes()
 	return mockLogger
 }
 
-func getMockRateLimiter(t *testing.T) *mocks.MockIRateLimiter {
-	return mocks.NewMockIRateLimiter(gomock.NewController(t))
+func getMockRateLimiter(t *testing.T) *mocks.MockRateLimiter {
+	return mocks.NewMockRateLimiter(gomock.NewController(t))
 }
 
 func getTestHandler(status int) http.HandlerFunc {

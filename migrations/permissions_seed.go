@@ -26,7 +26,7 @@ func (PermissionSeeds) GetDescription() string {
 }
 
 // Apply adds permission to database
-func (PermissionSeeds) Apply(dbLayer db.Db) {
+func (PermissionSeeds) Apply(dbLayer db.DB) {
 	permissions := []Permissions{
 		{
 			Key:         "User.Create",

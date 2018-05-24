@@ -6,14 +6,14 @@ import (
 	"strconv"
 )
 
-// IRequestHelper see IRequestHelper in server.go
-type IRequestHelper interface {
+// RequestHelper see RequestHelper in server.go
+type RequestHelper interface {
 	GetJwtData(r *http.Request) (*Claims, error)
 	GetIPAddress(r *http.Request) string
 }
 
-// IRateLimiter implementation needed to work
-type IRateLimiter interface {
+// RateLimiter implementation needed to work
+type RateLimiter interface {
 	Hit(key string) (int64, error)
 	Count(key string) (int64, error)
 }
@@ -21,15 +21,15 @@ type IRateLimiter interface {
 // LimiterOptions dependencies of Limit adapter
 type LimiterOptions struct {
 	Namespace     string
-	RequestHelper IRequestHelper
+	RequestHelper RequestHelper
 	Limit         int
 	AddHeaders    bool
-	Logger        ILogger
-	Limiter       IRateLimiter
+	Logger        Logger
+	Limiter       RateLimiter
 }
 
-// ILogger implementation needed for Limit adapter to log
-type ILogger interface {
+// Logger implementation needed for Limit adapter to log
+type Logger interface {
 	Warn(args ...interface{})
 }
 
@@ -73,7 +73,7 @@ func (limiter LimiterOptions) addHeaders(w http.ResponseWriter, currentCount int
 	w.Header().Add("X-RateLimit-Remaining", strconv.FormatInt(remaining, 10))
 }
 
-func getKeyFromRequest(namespace string, r *http.Request, requestHelper IRequestHelper) string {
+func getKeyFromRequest(namespace string, r *http.Request, requestHelper RequestHelper) string {
 	data, err := requestHelper.GetJwtData(r)
 	if err != nil {
 		return namespace + "-" + requestHelper.GetIPAddress(r)

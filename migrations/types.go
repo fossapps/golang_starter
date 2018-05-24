@@ -6,10 +6,10 @@ import (
 	"github.com/globalsign/mgo"
 )
 
-// IMigration interface to implement for a migration
-type IMigration interface {
+// Migration interface to implement for a migration
+type Migration interface {
 	GetKey() string
 	GetDescription() string
-	Apply(dbLayer db.Db)
+	Apply(dbLayer db.DB)
 	Remove(db *mgo.Database)
 }

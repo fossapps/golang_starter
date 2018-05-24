@@ -20,7 +20,7 @@ func TestAuthMwBlocksUnauthorizedUsers(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
 	ctrl := gomock.NewController(t)
-	mockRequestHelper := mocks.NewMockIRequestHelper(ctrl)
+	mockRequestHelper := mocks.NewMockRequestHelper(ctrl)
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).AnyTimes().Return(nil, nil)
 	adapters.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
@@ -36,7 +36,7 @@ func TestAuthMwLetsAuthorizedRequestPass(t *testing.T) {
 	token, _ := getFakeJWTWithPermission([]string{"user.create"})
 	req.Header.Add("Authorization", "Bearer "+token)
 	ctrl := gomock.NewController(t)
-	mockRequestHelper := mocks.NewMockIRequestHelper(ctrl)
+	mockRequestHelper := mocks.NewMockRequestHelper(ctrl)
 	claims := adapters.Claims{
 		Email: "test@example.com",
 	}

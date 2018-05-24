@@ -7,13 +7,13 @@ import (
 )
 
 // ApplyAll applies all migration to a specific database
-func ApplyAll(dbLayer db.Db) {
+func ApplyAll(dbLayer db.DB) {
 	Apply(UserSeed{}, dbLayer)
 	Apply(PermissionSeeds{}, dbLayer)
 }
 
 // Apply individual migration to a db
-func Apply(migration IMigration, dbLayer db.Db) {
+func Apply(migration Migration, dbLayer db.DB) {
 	if !dbLayer.Migrations().ShouldRun(migration.GetKey()) {
 		return
 	}

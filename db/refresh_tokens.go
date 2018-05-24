@@ -11,20 +11,20 @@ type RefreshToken struct {
 	User  string `json:"user"`
 }
 
-// IRefreshTokenManager deals with persistence of RefreshTokens
-type IRefreshTokenManager interface {
+// RefreshTokenManager deals with persistence of RefreshTokens
+type RefreshTokenManager interface {
 	FindOne(token string) *RefreshToken
 	Add(token string, user string)
 	List(user string) ([]RefreshToken, error)
 	Delete(token string) error
 }
 
-type refreshTokenLayer struct {
+type refreshTokenManager struct {
 	db *mgo.Database
 }
 
 // Add a refresh token for a user
-func (dbLayer refreshTokenLayer) Add(token string, user string) {
+func (dbLayer refreshTokenManager) Add(token string, user string) {
 	dbLayer.db.C("refresh_tokens").Insert(RefreshToken{
 		Token: token,
 		User:  user,
@@ -32,7 +32,7 @@ func (dbLayer refreshTokenLayer) Add(token string, user string) {
 }
 
 // FindOne using token
-func (dbLayer refreshTokenLayer) FindOne(token string) *RefreshToken {
+func (dbLayer refreshTokenManager) FindOne(token string) *RefreshToken {
 	refreshToken := new(RefreshToken)
 	dbLayer.db.C("refresh_tokens").Find(bson.M{
 		"token": token,
@@ -44,7 +44,7 @@ func (dbLayer refreshTokenLayer) FindOne(token string) *RefreshToken {
 }
 
 // List all tokens belonging to user
-func (dbLayer refreshTokenLayer) List(user string) ([]RefreshToken, error) {
+func (dbLayer refreshTokenManager) List(user string) ([]RefreshToken, error) {
 	var tokens []RefreshToken
 	err := dbLayer.db.C("refresh_tokens").Find(bson.M{
 		"user": user,
@@ -52,15 +52,15 @@ func (dbLayer refreshTokenLayer) List(user string) ([]RefreshToken, error) {
 	return tokens, err
 }
 
-func (dbLayer refreshTokenLayer) Delete(token string) error {
+func (dbLayer refreshTokenManager) Delete(token string) error {
 	return dbLayer.db.C("refresh_tokens").Remove(bson.M{
 		"token": token,
 	})
 }
 
-// GetRefreshTokenManager returns implementation of IRefreshTokenManager
-func GetRefreshTokenManager(db *mgo.Database) IRefreshTokenManager {
-	return refreshTokenLayer{
+// GetRefreshTokenManager returns implementation of RefreshTokenManager
+func GetRefreshTokenManager(db *mgo.Database) RefreshTokenManager {
+	return refreshTokenManager{
 		db: db,
 	}
 }
