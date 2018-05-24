@@ -2,8 +2,8 @@ package workers
 
 import "github.com/cyberhck/captain"
 
-// ICronJob any cron must satisfy this permission to run
-type ICronJob interface {
+// CronJob any cron must satisfy this permission to run
+type CronJob interface {
 	Job() captain.Worker
 	LockProvider() captain.LockProvider
 	ResultProcessor() captain.ResultProcessor
@@ -12,7 +12,7 @@ type ICronJob interface {
 }
 
 // Run a particular job
-func Run(key string, task ICronJob) {
+func Run(key string, task CronJob) {
 	if !task.ShouldRun(key) {
 		return
 	}

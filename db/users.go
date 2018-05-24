@@ -6,8 +6,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// IUserManager deals with anything related to User Persistence
-type IUserManager interface {
+// UserManager deals with anything related to User Persistence
+type UserManager interface {
 	FindByEmail(email string) *User
 	FindByID(id string) *User
 	Create(user User) error
@@ -23,7 +23,7 @@ type User struct {
 	Permissions []string      `json:"permissions"`
 }
 
-// UserLayer is implementation of IUserManager interface
+// UserLayer is implementation of UserManager interface
 type UserLayer struct {
 	db *mgo.Database
 }
@@ -74,8 +74,8 @@ func (dbLayer UserLayer) Edit(id string, user User) error {
 	}, user)
 }
 
-// GetUserManager returns implementation of IUserManager
-func GetUserManager(db *mgo.Database) IUserManager {
+// GetUserManager returns implementation of UserManager
+func GetUserManager(db *mgo.Database) UserManager {
 	return &UserLayer{
 		db: db,
 	}

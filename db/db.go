@@ -6,27 +6,27 @@ import (
 	"github.com/globalsign/mgo"
 )
 
-// DatabaseLayer is implementation of Db interface
+// DatabaseLayer is implementation of DB interface
 type DatabaseLayer struct {
 	session *mgo.Session
 }
 
-// Db implementation is what newsletter depends on
+// DB implementation is what newsletter depends on
 // in case some other db is preferred, all one would have to do is to simply implement the db interface
-type Db interface {
-	Clone() Db
-	Copy() Db
+type DB interface {
+	Clone() DB
+	Copy() DB
 	Close()
-	Users() IUserManager
-	RefreshTokens() IRefreshTokenManager
-	Permissions() IPermissionManager
-	Migrations() IMigrationManager
-	Devices() IDeviceManager
+	Users() UserManager
+	RefreshTokens() RefreshTokenManager
+	Permissions() PermissionManager
+	Migrations() MigrationManager
+	Devices() DeviceManager
 }
 
 // Copy works just like New, but preserves the exact authentication
 // information from the original session.
-func (db DatabaseLayer) Copy() Db {
+func (db DatabaseLayer) Copy() DB {
 	return GetDbImplementation(db.session.Copy())
 }
 
@@ -36,7 +36,7 @@ func (db DatabaseLayer) Copy() Db {
 // are necessarily observed when using the new session, as long as it was a
 // strong or monotonic session.  That said, it also means that long operations
 // may cause other goroutines using the original session to wait.
-func (db DatabaseLayer) Clone() Db {
+func (db DatabaseLayer) Clone() DB {
 	return GetDbImplementation(db.session.Clone())
 }
 
@@ -47,32 +47,32 @@ func (db DatabaseLayer) Close() {
 }
 
 // Users returns UserManager
-func (db DatabaseLayer) Users() IUserManager {
+func (db DatabaseLayer) Users() UserManager {
 	return GetUserManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
 // RefreshTokens returns RefreshTokenManager
-func (db DatabaseLayer) RefreshTokens() IRefreshTokenManager {
+func (db DatabaseLayer) RefreshTokens() RefreshTokenManager {
 	return GetRefreshTokenManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
 // Permissions returns PermissionManager
-func (db DatabaseLayer) Permissions() IPermissionManager {
+func (db DatabaseLayer) Permissions() PermissionManager {
 	return GetPermissionManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
 // Migrations returns MigrationManager
-func (db DatabaseLayer) Migrations() IMigrationManager {
+func (db DatabaseLayer) Migrations() MigrationManager {
 	return GetMigrationManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
-// Devices returns implementation of IDeviceManager
-func (db DatabaseLayer) Devices() IDeviceManager {
+// Devices returns implementation of DeviceManager
+func (db DatabaseLayer) Devices() DeviceManager {
 	return GetDeviceManager(db.session.DB(config.GetMongoConfig().DbName))
 }
 
-// GetDbImplementation Returns database implementation of Db interface
-func GetDbImplementation(session *mgo.Session) Db {
+// GetDbImplementation Returns database implementation of DB interface
+func GetDbImplementation(session *mgo.Session) DB {
 	return &DatabaseLayer{
 		session: session,
 	}

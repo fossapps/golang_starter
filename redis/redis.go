@@ -1,13 +1,13 @@
-package helpers
+package redis
 
 import (
-	"github.com/fossapps/starter/config"
 	"github.com/go-redis/redis"
+	"github.com/fossapps/starter/config"
 	"time"
 )
 
-// GetRedis returns an implementation of IRedisClient
-func GetRedis() (IRedisClient, error) {
+// NewClient returns an implementation of Client
+func NewClient() (Client, error) {
 	redisConfig := config.GetRedisConfig()
 	client := redis.NewClient(&redis.Options{
 		Addr:     redisConfig.Host,
@@ -19,8 +19,8 @@ func GetRedis() (IRedisClient, error) {
 	}, nil
 }
 
-// IRedisClient interface of redis which this application depends on
-type IRedisClient interface {
+// Client interface of redis which this application depends on
+type Client interface {
 	SIsMember(string, interface{}) (bool, error)
 	SAdd(string, ...interface{}) (int64, error)
 	Close() error
@@ -33,7 +33,7 @@ type IRedisClient interface {
 	Expire(key string, expiration time.Duration) (bool, error)
 }
 
-// Redis implementation of IRedisClient
+// Redis implementation of Client
 type Redis struct {
 	Client *redis.Client
 }
@@ -92,3 +92,4 @@ func (channel *Redis) SRem(key string, members ...interface{}) (int64, error) {
 func (channel *Redis) SMembers(key string) ([]string, error) {
 	return channel.Client.SMembers(key).Result()
 }
+

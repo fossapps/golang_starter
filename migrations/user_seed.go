@@ -21,7 +21,7 @@ func (UserSeed) GetDescription() string {
 }
 
 // Apply adds users to database
-func (UserSeed) Apply(dbLayer db.Db) {
+func (UserSeed) Apply(dbLayer db.DB) {
 	admin := db.User{
 		Email:       "admin@example.com",
 		Password:    "admin1234",

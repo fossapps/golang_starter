@@ -3,11 +3,9 @@ package starter
 import (
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
-	"github.com/fossapps/starter/helpers"
 	"net/http"
 	"strconv"
 	"time"
-
 	"errors"
 	"fmt"
 	"github.com/cyberhck/pushy"
@@ -21,10 +19,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
 	"net"
+	"github.com/fossapps/starter/redis"
 )
 
-// ILogger needs to be implemented for a logger to be used on this project
-type ILogger interface {
+// Logger needs to be implemented for a logger to be used on this project
+type Logger interface {
 	Info(args ...interface{})
 	Fatal(args ...interface{})
 	Error(args ...interface{})
@@ -38,11 +37,11 @@ type ILogger interface {
 // Server is a global struct which holds implementation of different things application depends on.
 // One can think of this as dependency container
 type Server struct {
-	Logger    ILogger
-	Db        db.Db
-	Redis     helpers.IRedisClient
+	Logger    Logger
+	Db        db.DB
+	Redis     redis.Client
 	Pushy     pushy.IPushyClient
-	ReqHelper IRequestHelper
+	ReqHelper RequestHelper
 }
 
 // SimpleResponse is used when our handler wants to responds with simple boolean type information, like success, or fail
@@ -89,7 +88,7 @@ func (s *Server) SuccessResponse(w http.ResponseWriter, r *http.Request, statusC
 func createServer() Server {
 	session := getMongo()
 	dbLayer := db.GetDbImplementation(session)
-	requestHelper := RequestHelper{}
+	requestHelper := requestHelper{}
 	return Server{
 		Logger:    getLogger(),
 		Db:        dbLayer,
@@ -99,7 +98,7 @@ func createServer() Server {
 	}
 }
 
-func getLogger() ILogger {
+func getLogger() Logger {
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.GetLogLevel())
 	logger.AddHook(getSlackHook())
@@ -129,12 +128,12 @@ func getMongo() *mgo.Session {
 	return mongo
 }
 
-func getRedis() *helpers.IRedisClient {
-	redis, err := helpers.GetRedis()
+func getRedis() *redis.Client {
+	client, err := redis.NewClient()
 	if err != nil {
 		panic(err)
 	}
-	return &redis
+	return &client
 }
 
 func getPushy() pushy.IPushyClient {
@@ -147,11 +146,11 @@ func (s *Server) cleanup() {
 	s.Redis.Close()
 }
 
-// RequestHelper simple IRequestHelper implementation
-type RequestHelper struct{}
+// requestHelper simple requestHelper implementation
+type requestHelper struct{}
 
 // GetJwtData util method to get data from request
-func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
+func (requestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
 	var claims adapters.Claims
 	token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
 	err := claims.Valid()
@@ -168,7 +167,7 @@ func (RequestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
 }
 
 // GetIPAddress util method to get IP address from request
-func (RequestHelper) GetIPAddress(r *http.Request) string {
+func (requestHelper) GetIPAddress(r *http.Request) string {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return ""
@@ -176,8 +175,8 @@ func (RequestHelper) GetIPAddress(r *http.Request) string {
 	return ip
 }
 
-// IRequestHelper interface to implement to satisfy as a Request Helper for this application
-type IRequestHelper interface {
+// RequestHelper interface to implement to satisfy as a Request Helper for this application
+type RequestHelper interface {
 	GetJwtData(r *http.Request) (*adapters.Claims, error)
 	GetIPAddress(r *http.Request) string
 }
