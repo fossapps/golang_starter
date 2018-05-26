@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     machine: true
-    working_directory: /home/circleci/.go_workspace/src/starter
+    working_directory: /home/circleci/.go_workspace/src/github.com/fossapps/starter
     steps:
       - checkout
       # specify any bash command here prefixed with `run: `
