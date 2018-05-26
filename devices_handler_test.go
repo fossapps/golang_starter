@@ -1,4 +1,4 @@
-//go:generate mockgen -destination=./mocks/mock_pushy_client.go -package=mocks github.com/cyberhck/pushy IPushyClient
+//go:generate mockgen -destination=./mock/mock_pushy_client.go -package=mock github.com/cyberhck/pushy IPushyClient
 
 package starter_test
 
@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fossapps/starter/mocks"
+	"github.com/fossapps/starter/mock"
 
 	"github.com/cyberhck/pushy"
 	"github.com/golang/mock/gomock"
@@ -57,12 +57,12 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	defer mockDbCtrl.Finish()
 	mockDevicesCtrl := gomock.NewController(t)
 	defer mockDevicesCtrl.Finish()
-	mockDb := mocks.NewMockDB(mockDbCtrl)
-	mockDeviceManager := mocks.NewMockDeviceManager(mockDevicesCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
 	token := "some_random_large_token_which_is_checked"
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
-	mockPushy := mocks.NewMockIPushyClient(pushyCtrl)
+	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(true)
 	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
@@ -89,11 +89,11 @@ func TestServer_RegisterHandlerReturnsInternalServerIfDbError(t *testing.T) {
 	defer mockDbCtrl.Finish()
 	mockDevicesCtrl := gomock.NewController(t)
 	defer mockDevicesCtrl.Finish()
-	mockDb := mocks.NewMockDB(mockDbCtrl)
-	mockDeviceManager := mocks.NewMockDeviceManager(mockDevicesCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
-	mockPushy := mocks.NewMockIPushyClient(pushyCtrl)
+	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
 	token := "some_random_large_token_which_is_checked"
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
@@ -124,11 +124,11 @@ func TestServer_RegisterHandlerRegisters(t *testing.T) {
 	defer mockDevicesCtrl.Finish()
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
-	mockPushy := mocks.NewMockIPushyClient(pushyCtrl)
+	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
 	token := "some_random_large_token_which_is_checked"
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
-	mockDb := mocks.NewMockDB(mockDbCtrl)
-	mockDeviceManager := mocks.NewMockDeviceManager(mockDevicesCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
 	mockDeviceManager.EXPECT().Register(token).Times(1).Return(nil)
 	mockDb.EXPECT().Devices().MinTimes(1).Return(mockDeviceManager)
@@ -154,10 +154,10 @@ func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *tes
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
 	defer mockDbCtrl.Finish()
-	mockDb := mocks.NewMockDB(mockDbCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
-	mockPushy := mocks.NewMockIPushyClient(pushyCtrl)
+	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
 	token := "some_random_large_token_which_is_checked"
 	mockPushyError := pushy.Error{
 		Error: "We could not find a device with that token linked to your account.",

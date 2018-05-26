@@ -11,7 +11,7 @@ import (
 	"github.com/cyberhck/pushy"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
-	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/adapter"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/handlers"
 	"github.com/multiplay/go-slack/chat"
@@ -57,7 +57,7 @@ func Init() {
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 	server := createServer()
 	defer server.cleanup()
-	router := adapters.DevMw(1000)(NewRouter(server))
+	router := adapter.DevMw(1000)(NewRouter(server))
 	port := strconv.Itoa(config.GetAPIPort())
 	server.Logger.Info("Attempting to listen on port " + port)
 	err := http.
@@ -150,8 +150,8 @@ func (s *Server) cleanup() {
 type requestHelper struct{}
 
 // GetJwtData util method to get data from request
-func (requestHelper) GetJwtData(r *http.Request) (*adapters.Claims, error) {
-	var claims adapters.Claims
+func (requestHelper) GetJwtData(r *http.Request) (*adapter.Claims, error) {
+	var claims adapter.Claims
 	token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
 	err := claims.Valid()
 	if parseErr != nil {
@@ -177,7 +177,7 @@ func (requestHelper) GetIPAddress(r *http.Request) string {
 
 // RequestHelper interface to implement to satisfy as a Request Helper for this application
 type RequestHelper interface {
-	GetJwtData(r *http.Request) (*adapters.Claims, error)
+	GetJwtData(r *http.Request) (*adapter.Claims, error)
 	GetIPAddress(r *http.Request) string
 }
 

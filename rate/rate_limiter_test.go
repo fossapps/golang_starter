@@ -3,7 +3,7 @@ package rate_test
 import (
 	"errors"
 	"github.com/fossapps/starter/rate"
-	"github.com/fossapps/starter/mocks"
+	"github.com/fossapps/starter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,7 +13,7 @@ import (
 func TestLimiter_CountErrorWhileRemovingDecayed(t *testing.T) {
 	expect := assert.New(t)
 	ctrl := gomock.NewController(t)
-	mockRedis := mocks.NewMockRedisClient(ctrl)
+	mockRedis := mock.NewMockRedisClient(ctrl)
 	mockRedis.EXPECT().ZRemRangeByScore("key", "0", gomock.Any()).Return(int64(0), errors.New("error"))
 
 	limiter := rate.Limiter{
@@ -29,7 +29,7 @@ func TestLimiter_CountErrorWhileRemovingDecayed(t *testing.T) {
 func TestLimiter_Count(t *testing.T) {
 	expect := assert.New(t)
 	ctrl := gomock.NewController(t)
-	mockRedis := mocks.NewMockRedisClient(ctrl)
+	mockRedis := mock.NewMockRedisClient(ctrl)
 	mockRedis.EXPECT().ZCard("key").Return(int64(2), nil)
 	mockRedis.EXPECT().ZRemRangeByScore("key", "0", gomock.Any()).Return(int64(0), nil)
 	limiter := rate.Limiter{
@@ -45,7 +45,7 @@ func TestLimiter_Count(t *testing.T) {
 func TestLimiter_HitErrorWhileAdding(t *testing.T) {
 	expect := assert.New(t)
 	ctrl := gomock.NewController(t)
-	mockRedis := mocks.NewMockRedisClient(ctrl)
+	mockRedis := mock.NewMockRedisClient(ctrl)
 	mockRedis.EXPECT().ZAdd("key", gomock.Any()).Return(int64(0), errors.New("error"))
 
 	limiter := rate.Limiter{
@@ -61,7 +61,7 @@ func TestLimiter_HitErrorWhileAdding(t *testing.T) {
 func TestLimiter_HitErrorSettingExpiry(t *testing.T) {
 	expect := assert.New(t)
 	ctrl := gomock.NewController(t)
-	mockRedis := mocks.NewMockRedisClient(ctrl)
+	mockRedis := mock.NewMockRedisClient(ctrl)
 	mockRedis.EXPECT().ZAdd("key", gomock.Any()).Return(int64(0), nil)
 	mockRedis.EXPECT().Expire("key", gomock.Any()).Return(false, errors.New("error"))
 
@@ -78,7 +78,7 @@ func TestLimiter_HitErrorSettingExpiry(t *testing.T) {
 func TestLimiter_Hit(t *testing.T) {
 	expect := assert.New(t)
 	ctrl := gomock.NewController(t)
-	mockRedis := mocks.NewMockRedisClient(ctrl)
+	mockRedis := mock.NewMockRedisClient(ctrl)
 	mockRedis.EXPECT().ZAdd("key", gomock.Any()).Return(int64(0), nil)
 	mockRedis.EXPECT().ZRemRangeByScore("key", "0", gomock.Any()).Return(int64(0), nil)
 	mockRedis.EXPECT().Expire("key", gomock.Any()).Return(true, nil)

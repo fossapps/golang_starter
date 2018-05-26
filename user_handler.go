@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fossapps/starter/transformers"
+	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
@@ -80,7 +80,7 @@ func (s Server) ListUsers() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "internal server error")
 			return
 		}
-		respond.With(w, r, http.StatusOK, transformers.TransformUsers(users))
+		respond.With(w, r, http.StatusOK, transformer.TransformUsers(users))
 	})
 }
 
@@ -144,6 +144,6 @@ func (s Server) GetUser() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusNotFound, "not found")
 			return
 		}
-		respond.With(w, r, http.StatusOK, transformers.TransformUser(*user))
+		respond.With(w, r, http.StatusOK, transformer.TransformUser(*user))
 	})
 }
