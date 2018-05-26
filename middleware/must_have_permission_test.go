@@ -1,15 +1,16 @@
 package middleware_test
 
 import (
-	"github.com/dgrijalva/jwt-go"
-	"github.com/fossapps/starter/middleware"
-	"github.com/fossapps/starter/config"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/matryer/respond.v1"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/middleware"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/matryer/respond.v1"
 )
 
 func getFakeJWTWithPermission(permissions []string) (string, error) {

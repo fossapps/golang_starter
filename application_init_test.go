@@ -3,8 +3,9 @@
 package starter_test
 
 import (
-	"github.com/fossapps/starter/config"
 	"testing"
+
+	"github.com/fossapps/starter/config"
 
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"

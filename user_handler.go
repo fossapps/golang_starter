@@ -2,9 +2,10 @@ package starter
 
 import (
 	"encoding/json"
-	"github.com/fossapps/starter/db"
 	"net/http"
 	"strings"
+
+	"github.com/fossapps/starter/db"
 
 	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"

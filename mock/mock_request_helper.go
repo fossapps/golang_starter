@@ -5,10 +5,11 @@
 package mock
 
 import (
-	middleware "github.com/fossapps/starter/middleware"
-	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"
+
+	middleware "github.com/fossapps/starter/middleware"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockRequestHelper is a mock of RequestHelper interface

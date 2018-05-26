@@ -3,11 +3,12 @@
 package db_test
 
 import (
+	"testing"
+
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestDeviceManager_Register(t *testing.T) {

@@ -2,14 +2,15 @@ package middleware_test
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 // region setup data

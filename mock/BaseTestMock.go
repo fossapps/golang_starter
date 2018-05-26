@@ -2,8 +2,9 @@ package mock
 
 import (
 	"fmt"
-	"github.com/cyberhck/captain"
 	"time"
+
+	"github.com/cyberhck/captain"
 )
 
 type ExampleMockJob struct {

@@ -1,25 +1,26 @@
 package starter
 
 import (
-	"github.com/fossapps/starter/config"
-	"github.com/fossapps/starter/db"
+	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"time"
-	"errors"
-	"fmt"
+
 	"github.com/cyberhck/pushy"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/middleware"
+	"github.com/fossapps/starter/redis"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/handlers"
 	"github.com/multiplay/go-slack/chat"
 	"github.com/multiplay/go-slack/lrhook"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
-	"net"
-	"github.com/fossapps/starter/redis"
 )
 
 // Logger needs to be implemented for a logger to be used on this project

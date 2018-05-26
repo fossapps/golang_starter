@@ -12,9 +12,10 @@ import (
 	"github.com/fossapps/starter/mock"
 
 	"errors"
-	"github.com/fossapps/starter/middleware"
-	"github.com/fossapps/starter/config"
 	"time"
+
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/middleware"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/globalsign/mgo"

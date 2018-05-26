@@ -1,9 +1,10 @@
 package rate
 
 import (
-	"github.com/go-redis/redis"
 	"strconv"
 	"time"
+
+	"github.com/go-redis/redis"
 )
 
 // RedisClient interface need to satisfy for Limiter to work

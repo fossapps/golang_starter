@@ -5,10 +5,11 @@
 package mock
 
 import (
+	reflect "reflect"
+
 	db "github.com/fossapps/starter/db"
 	mgo "github.com/globalsign/mgo"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockMigration is a mock of Migration interface
