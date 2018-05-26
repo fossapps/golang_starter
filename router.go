@@ -3,7 +3,7 @@ package starter
 import (
 	"github.com/fossapps/starter/adapters"
 
-	"github.com/fossapps/starter/helpers"
+	"github.com/fossapps/starter/rate"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"
 	"net/http"
@@ -84,7 +84,7 @@ func NewRouter(s Server) *mux.Router {
 		Namespace:     "test",
 		AddHeaders:    true,
 		Logger:        s.Logger,
-		Limiter: helpers.Limiter{
+		Limiter: rate.Limiter{
 			Decay:       10 * time.Second,
 			Limit:       3,
 			RedisClient: routerInstance.server.Redis,
