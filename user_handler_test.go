@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/fossapps/starter"
-	"github.com/fossapps/starter/db"
-	"github.com/fossapps/starter/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/mock"
 
 	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"

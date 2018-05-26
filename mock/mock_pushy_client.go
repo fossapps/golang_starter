@@ -5,9 +5,10 @@
 package mock
 
 import (
+	reflect "reflect"
+
 	pushy "github.com/cyberhck/pushy"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockIPushyClient is a mock of IPushyClient interface

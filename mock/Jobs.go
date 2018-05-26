@@ -5,9 +5,10 @@
 package mock
 
 import (
+	reflect "reflect"
+
 	captain "github.com/cyberhck/captain"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockICronJob is a mock of ICronJob interface

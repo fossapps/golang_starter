@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 )

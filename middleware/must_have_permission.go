@@ -6,6 +6,7 @@ import (
 	"github.com/fossapps/starter/config"
 
 	"fmt"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"gopkg.in/matryer/respond.v1"

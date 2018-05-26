@@ -2,12 +2,13 @@ package middleware_test
 
 import (
 	"fmt"
-	"github.com/fossapps/starter/middleware"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/matryer/respond.v1"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/fossapps/starter/middleware"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/matryer/respond.v1"
 )
 
 func ExampleAdapt() {

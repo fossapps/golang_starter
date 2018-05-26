@@ -1,12 +1,13 @@
 package middleware_test
 
 import (
-	"github.com/fossapps/starter/middleware"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/fossapps/starter/middleware"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestResponseTimeTakesInLoggerReturnsAMiddleware(t *testing.T) {

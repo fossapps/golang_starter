@@ -1,9 +1,10 @@
 package redis
 
 import (
-	"github.com/go-redis/redis"
-	"github.com/fossapps/starter/config"
 	"time"
+
+	"github.com/fossapps/starter/config"
+	"github.com/go-redis/redis"
 )
 
 // NewClient returns an implementation of Client
@@ -92,4 +93,3 @@ func (channel *Redis) SRem(key string, members ...interface{}) (int64, error) {
 func (channel *Redis) SMembers(key string) ([]string, error) {
 	return channel.Client.SMembers(key).Result()
 }
-

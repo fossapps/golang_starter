@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"gopkg.in/matryer/respond.v1"
 	"net/http"
 	"strconv"
+
+	"gopkg.in/matryer/respond.v1"
 )
 
 // RequestHelper see RequestHelper in server.go

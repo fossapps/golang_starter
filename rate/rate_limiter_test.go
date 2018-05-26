@@ -2,12 +2,13 @@ package rate_test
 
 import (
 	"errors"
-	"github.com/fossapps/starter/rate"
-	"github.com/fossapps/starter/mock"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/fossapps/starter/mock"
+	"github.com/fossapps/starter/rate"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLimiter_CountErrorWhileRemovingDecayed(t *testing.T) {
