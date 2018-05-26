@@ -1,7 +1,7 @@
 package starter
 
 import (
-	"github.com/fossapps/starter/adapters"
+	"github.com/fossapps/starter/adapter"
 
 	"github.com/fossapps/starter/rate"
 	"github.com/gorilla/mux"
@@ -25,34 +25,34 @@ func (r router) build() {
 }
 
 func (r router) deviceResource() {
-	r.router.HandleFunc("/device/register", adapters.Adapt(r.server.RegisterHandler(), adapters.ResponseTime(r.server.Logger))).
+	r.router.HandleFunc("/device/register", adapter.Adapt(r.server.RegisterHandler(), adapter.ResponseTime(r.server.Logger))).
 		Methods("POST")
 }
 
 func (r router) userResource() {
 	r.router.HandleFunc(
 		"/users",
-		adapters.Adapt(r.server.CreateUser(), adapters.MustHavePermission(r.perm.User.Create))).
+		adapter.Adapt(r.server.CreateUser(), adapter.MustHavePermission(r.perm.User.Create))).
 		Methods("POST")
 
 	r.router.HandleFunc(
-		"/users", adapters.Adapt(r.server.ListUsers(),
-			adapters.MustHavePermission(r.perm.User.List))).
+		"/users", adapter.Adapt(r.server.ListUsers(),
+			adapter.MustHavePermission(r.perm.User.List))).
 		Methods("GET")
 
 	r.router.Handle("/users/available", r.server.UserAvailability()).
 		Methods("POST")
 	r.router.Handle(
 		"/users/{user}",
-		adapters.Adapt(r.server.EditUser(), adapters.MustHavePermission(r.perm.User.Edit))).
+		adapter.Adapt(r.server.EditUser(), adapter.MustHavePermission(r.perm.User.Edit))).
 		Methods("PUT")
 	r.router.Handle("/users/{user}", r.server.GetUser()).Methods("GET")
 }
 
 func (r router) permissionsResource() {
 	r.router.HandleFunc(
-		"/permissions", adapters.Adapt(r.server.ListPermissions(),
-			adapters.AuthMw(r.server.ReqHelper))).
+		"/permissions", adapter.Adapt(r.server.ListPermissions(),
+			adapter.AuthMw(r.server.ReqHelper))).
 		Methods("GET")
 }
 
@@ -65,7 +65,7 @@ func (r router) authResource() {
 
 	r.router.HandleFunc(
 		"/session",
-		adapters.Adapt(r.server.RefreshTokensList(), adapters.AuthMw(r.server.ReqHelper))).
+		adapter.Adapt(r.server.RefreshTokensList(), adapter.AuthMw(r.server.ReqHelper))).
 		Methods("GET")
 	r.router.HandleFunc("/session/{token}", r.server.DeleteSession()).Methods("DELETE")
 }
@@ -78,7 +78,7 @@ func NewRouter(s Server) *mux.Router {
 		router: muxRouter,
 	}
 	routerInstance.build()
-	limiterOptions := adapters.LimiterOptions{
+	limiterOptions := adapter.LimiterOptions{
 		RequestHelper: routerInstance.server.ReqHelper,
 		Limit:         3,
 		Namespace:     "test",
@@ -90,8 +90,8 @@ func NewRouter(s Server) *mux.Router {
 			RedisClient: routerInstance.server.Redis,
 		},
 	}
-	routerInstance.router.HandleFunc("/test", adapters.Adapt(func(writer http.ResponseWriter, request *http.Request) {
+	routerInstance.router.HandleFunc("/test", adapter.Adapt(func(writer http.ResponseWriter, request *http.Request) {
 		respond.With(writer, request, http.StatusOK, "success")
-	}, adapters.Limit(limiterOptions)))
+	}, adapter.Limit(limiterOptions)))
 	return routerInstance.router
 }

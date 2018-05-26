@@ -7,7 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 )
 
-// MigrationManager deals with any info related to migrations saved to disk
+// MigrationManager deals with any info related to migration saved to disk
 type MigrationManager interface {
 	MarkApplied(key string, description string)
 	ShouldRun(key string) bool
@@ -24,8 +24,8 @@ type migrationManagerLayer struct {
 	db *mgo.Database
 }
 
-// seedingCollectionName name of collection which holds info about migrations
-const seedingCollectionName = "migrations"
+// seedingCollectionName name of collection which holds info about migration
+const seedingCollectionName = "migration"
 
 // GetMigrationManager returns implementation of MigrationManager
 func GetMigrationManager(db *mgo.Database) MigrationManager {

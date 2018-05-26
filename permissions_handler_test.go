@@ -9,7 +9,7 @@ import (
 
 	"github.com/fossapps/starter"
 	"github.com/fossapps/starter/db"
-	"github.com/fossapps/starter/mocks"
+	"github.com/fossapps/starter/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -19,10 +19,10 @@ func TestServer_ListPermissionsListsPermissionFromDb(t *testing.T) {
 	expect := assert.New(t)
 	permissionCtrl := gomock.NewController(t)
 	defer permissionCtrl.Finish()
-	permissionManager := mocks.NewMockPermissionManager(permissionCtrl)
+	permissionManager := mock.NewMockPermissionManager(permissionCtrl)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
-	dbManager := mocks.NewMockDB(dbCtrl)
+	dbManager := mock.NewMockDB(dbCtrl)
 	dbManager.EXPECT().Clone().AnyTimes().Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	server := starter.Server{
@@ -53,10 +53,10 @@ func TestServer_ListPermissionsReturnsInternalServerErrorIfDbError(t *testing.T)
 	expect := assert.New(t)
 	permissionCtrl := gomock.NewController(t)
 	defer permissionCtrl.Finish()
-	permissionManager := mocks.NewMockPermissionManager(permissionCtrl)
+	permissionManager := mock.NewMockPermissionManager(permissionCtrl)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
-	dbManager := mocks.NewMockDB(dbCtrl)
+	dbManager := mock.NewMockDB(dbCtrl)
 	dbManager.EXPECT().Clone().AnyTimes().Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
 	server := starter.Server{

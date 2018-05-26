@@ -3,7 +3,7 @@ package starter
 import (
 	"net/http"
 
-	"github.com/fossapps/starter/transformers"
+	"github.com/fossapps/starter/transformer"
 	"gopkg.in/matryer/respond.v1"
 )
 
@@ -16,6 +16,6 @@ func (s *Server) ListPermissions() http.HandlerFunc {
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "Server Error")
 		}
-		respond.With(w, r, http.StatusOK, transformers.TransformPermissions(permissionList))
+		respond.With(w, r, http.StatusOK, transformer.TransformPermissions(permissionList))
 	})
 }

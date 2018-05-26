@@ -11,7 +11,7 @@ import (
 	"github.com/fossapps/starter/db"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/fossapps/starter/transformers"
+	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -118,7 +118,7 @@ func (s *Server) RefreshTokensList() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusInternalServerError, "database error")
 			return
 		}
-		respond.With(w, r, http.StatusOK, transformers.TransformRefreshTokens(tokens))
+		respond.With(w, r, http.StatusOK, transformer.TransformRefreshTokens(tokens))
 	})
 }
 
