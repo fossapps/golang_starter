@@ -1,4 +1,4 @@
-package adapter
+package middleware
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ type jwtHelper interface {
 }
 
 // AuthMw ensures request is authenticated
-func AuthMw(helper jwtHelper) Adapter {
+func AuthMw(helper jwtHelper) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			data, err := helper.GetJwtData(r)

@@ -12,7 +12,7 @@ import (
 	"github.com/fossapps/starter/mock"
 
 	"errors"
-	"github.com/fossapps/starter/adapter"
+	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/config"
 	"time"
 
@@ -301,7 +301,7 @@ func TestServer_RefreshTokensListReturnsInternalServerIfDbError(t *testing.T) {
 	defer requestHelperCtrl.Finish()
 	mockRequestHelper := mock.NewMockRequestHelper(requestHelperCtrl)
 	userID := "some_random_id"
-	claims := adapter.Claims{
+	claims := middleware.Claims{
 		ID:          userID,
 		Email:       "admin@example.com",
 		Permissions: []string{"sudo"},
@@ -338,7 +338,7 @@ func TestServer_RefreshTokensListReturnsRefreshTokenList(t *testing.T) {
 	mockRequestHelper := mock.NewMockRequestHelper(requestHelperCtrl)
 	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
 	userID := "some_random_id"
-	claims := adapter.Claims{
+	claims := middleware.Claims{
 		ID:          userID,
 		Email:       "admin@example.com",
 		Permissions: []string{"sudo"},

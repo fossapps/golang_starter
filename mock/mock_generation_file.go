@@ -1,4 +1,4 @@
-//go:generate mockgen -destination=./mock_rate_limiter.go -package=mock github.com/fossapps/starter/adapter RateLimiter
+//go:generate mockgen -destination=./mock_rate_limiter.go -package=mock github.com/fossapps/starter/middleware RateLimiter
 //go:generate mockgen -destination=./mock_db.go -package=mock github.com/fossapps/starter/db DB
 //go:generate mockgen -destination=./mock_devices.go -package=mock github.com/fossapps/starter/db DeviceManager
 //go:generate mockgen -destination=./mock_migration.go -package=mock github.com/fossapps/starter/db MigrationManager

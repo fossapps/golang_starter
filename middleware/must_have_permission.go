@@ -1,4 +1,4 @@
-package adapter
+package middleware
 
 import (
 	"net/http"
@@ -26,8 +26,8 @@ func signingFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }
 
-// MustHavePermission is a adapter which ensures a request has permission before handler is invoked
-func MustHavePermission(permission string) Adapter {
+// MustHavePermission is a middleware which ensures a request has permission before handler is invoked
+func MustHavePermission(permission string) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			var claims Claims

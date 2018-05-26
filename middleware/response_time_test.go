@@ -1,7 +1,7 @@
-package adapter_test
+package middleware_test
 
 import (
-	"github.com/fossapps/starter/adapter"
+	"github.com/fossapps/starter/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -9,18 +9,18 @@ import (
 	"testing"
 )
 
-func TestResponseTimeTakesInLoggerReturnsAnAdapter(t *testing.T) {
+func TestResponseTimeTakesInLoggerReturnsAMiddleware(t *testing.T) {
 	logger := logrus.New()
-	adapter := adapter.ResponseTime(logger)
+	mw := middleware.ResponseTime(logger)
 	Assert := assert.New(t)
-	Assert.NotNil(adapter)
+	Assert.NotNil(mw)
 }
 
 func TestResponseTimeAdapterTakesInHandlerReturnsHandler(t *testing.T) {
 	logger := logrus.New()
-	adapter := adapter.ResponseTime(logger)
+	mw := middleware.ResponseTime(logger)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	newHandler := adapter(handler)
+	newHandler := mw(handler)
 	assert.IsType(t, handler, newHandler)
 }
 
@@ -28,9 +28,9 @@ func TestResponseTimeLogsResponseTime(t *testing.T) {
 	logger := logrus.New()
 	loggerOutput := httptest.NewRecorder()
 	logger.Out = loggerOutput
-	adapter := adapter.ResponseTime(logger)
+	mw := middleware.ResponseTime(logger)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	newHandler := adapter(handler)
+	newHandler := mw(handler)
 	newHandler(httptest.NewRecorder(), nil)
 	assert.Contains(t, loggerOutput.Body.String(), "response in")
 	assert.Contains(t, loggerOutput.Body.String(), "level=info")

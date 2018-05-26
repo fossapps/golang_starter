@@ -5,7 +5,7 @@
 package mock
 
 import (
-	adapter "github.com/fossapps/starter/adapter"
+	middleware "github.com/fossapps/starter/middleware"
 	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"
@@ -47,9 +47,9 @@ func (mr *MockRequestHelperMockRecorder) GetIPAddress(arg0 interface{}) *gomock.
 }
 
 // GetJwtData mocks base method
-func (m *MockRequestHelper) GetJwtData(arg0 *http.Request) (*adapter.Claims, error) {
+func (m *MockRequestHelper) GetJwtData(arg0 *http.Request) (*middleware.Claims, error) {
 	ret := m.ctrl.Call(m, "GetJwtData", arg0)
-	ret0, _ := ret[0].(*adapter.Claims)
+	ret0, _ := ret[0].(*middleware.Claims)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

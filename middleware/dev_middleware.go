@@ -1,4 +1,4 @@
-package adapter
+package middleware
 
 import (
 	"math/rand"
@@ -7,7 +7,7 @@ import (
 )
 
 // DevMw simple middleware to delay a request
-func DevMw(milliseconds int) Adapter {
+func DevMw(milliseconds int) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			duration := time.Millisecond * time.Duration(rand.Intn(milliseconds))

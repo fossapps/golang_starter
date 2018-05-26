@@ -1,4 +1,4 @@
-package adapter
+package middleware
 
 import (
 	"net/http"
@@ -10,8 +10,8 @@ type ResponseTimeLogger interface {
 	Info(args ...interface{})
 }
 
-// ResponseTime adapter to log response time for a request
-func ResponseTime(logger ResponseTimeLogger) Adapter {
+// ResponseTime middleware to log response time for a request
+func ResponseTime(logger ResponseTimeLogger) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			now := time.Now()
