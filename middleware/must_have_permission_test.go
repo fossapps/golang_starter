@@ -1,8 +1,8 @@
-package adapter_test
+package middleware_test
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"github.com/fossapps/starter/adapter"
+	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/config"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
@@ -30,7 +30,7 @@ func TestMustHavePermissionRespondsWithStatusUnauthorized(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 	req.Header.Add("Authorization", "Bearer "+token)
-	adapter.MustHavePermission("user.destroy")(handler)(responseRecorder, req)
+	middleware.MustHavePermission("user.destroy")(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusForbidden, responseRecorder.Code)
 }
 
@@ -44,7 +44,7 @@ func TestMustHavePermissionLetsHttpHandlerSetStatusCodeIfHavePermission(t *testi
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 	req.Header.Add("Authorization", "Bearer "+token)
-	adapter.MustHavePermission("user.create")(handler)(responseRecorder, req)
+	middleware.MustHavePermission("user.create")(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusNotImplemented, responseRecorder.Code)
 }
 
@@ -55,7 +55,7 @@ func TestMustHavePermissionStopsInvalidJWT(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Add("Authorization", "Bearer "+"some.random.string")
-	adapter.MustHavePermission("user.create")(handler)(responseRecorder, req)
+	middleware.MustHavePermission("user.create")(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusForbidden, responseRecorder.Code)
 }
 
@@ -69,6 +69,6 @@ func TestMustHavePermissionLetsSudoPermissionThrough(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 	req.Header.Add("Authorization", "Bearer "+token)
-	adapter.MustHavePermission("user.create")(handler)(responseRecorder, req)
+	middleware.MustHavePermission("user.create")(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusNotImplemented, responseRecorder.Code)
 }

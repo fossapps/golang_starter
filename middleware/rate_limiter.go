@@ -1,4 +1,4 @@
-package adapter
+package middleware
 
 import (
 	"gopkg.in/matryer/respond.v1"
@@ -18,7 +18,7 @@ type RateLimiter interface {
 	Count(key string) (int64, error)
 }
 
-// LimiterOptions dependencies of Limit adapter
+// LimiterOptions dependencies of Limit middleware
 type LimiterOptions struct {
 	Namespace     string
 	RequestHelper RequestHelper
@@ -28,13 +28,13 @@ type LimiterOptions struct {
 	Limiter       RateLimiter
 }
 
-// Logger implementation needed for Limit adapter to log
+// Logger implementation needed for Limit middleware to log
 type Logger interface {
 	Warn(args ...interface{})
 }
 
-// Limit adapter ensures a handler isn't called more than N times in D duraton
-func Limit(options LimiterOptions) Adapter {
+// Limit middleware ensures a handler isn't called more than N times in D duraton
+func Limit(options LimiterOptions) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			key := getKeyFromRequest(options.Namespace, r, options.RequestHelper)

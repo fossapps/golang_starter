@@ -1,8 +1,8 @@
-package adapter_test
+package middleware_test
 
 import (
 	"errors"
-	"github.com/fossapps/starter/adapter"
+	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -37,8 +37,8 @@ func getTestHandler(status int) http.HandlerFunc {
 	}
 }
 
-func getLimiterOptions(t *testing.T) adapter.LimiterOptions {
-	return adapter.LimiterOptions{
+func getLimiterOptions(t *testing.T) middleware.LimiterOptions {
+	return middleware.LimiterOptions{
 		Limit:     5,
 		Namespace: "my_key",
 		Logger:    getMockLogger(t),
@@ -50,12 +50,12 @@ func getLimiterOptions(t *testing.T) adapter.LimiterOptions {
 func TestLimitUsesUserIdIfAvailable(t *testing.T) {
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -70,7 +70,7 @@ func TestLimitUsesIpAddrIfIdNotAvailable(t *testing.T) {
 	mockRateLimiter.EXPECT().Count("my_key-ip_addr").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -80,12 +80,12 @@ func TestLimitReturnsInternalServerErrorIfCountNull(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -96,13 +96,13 @@ func TestLimitReturnsTooManyRequestIfCountGreaterThanOrEqualToLimit(t *testing.T
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(5), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
 	limiterOptions.AddHeaders = false
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -113,13 +113,13 @@ func TestLimitReturnsTooManyRequestIfCountGreaterThanOrEqualToLimitAndAddsHeader
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(5), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
 	limiterOptions.AddHeaders = true
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -132,14 +132,14 @@ func TestLimitHandlesHitError(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
 	limiterOptions.AddHeaders = false
-	handler := adapter.Adapt(getTestHandler(http.StatusOK), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -149,14 +149,14 @@ func TestLimitCallsHandler(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
 	limiterOptions.AddHeaders = false
-	handler := adapter.Adapt(getTestHandler(http.StatusAccepted), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusAccepted), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)
@@ -167,14 +167,14 @@ func TestLimitCallsHandlerAndSetsHeaderIfRequested(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&adapter.Claims{ID: "my_id"}, nil)
+	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
 	limiterOptions.AddHeaders = true
-	handler := adapter.Adapt(getTestHandler(http.StatusAccepted), adapter.Limit(limiterOptions))
+	handler := middleware.Adapt(getTestHandler(http.StatusAccepted), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
 	handler(responseRecorder, request)

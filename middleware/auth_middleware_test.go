@@ -1,11 +1,11 @@
-package adapter_test
+package middleware_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fossapps/starter/adapter"
+	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/mock"
 
 	"github.com/golang/mock/gomock"
@@ -22,7 +22,7 @@ func TestAuthMwBlocksUnauthorizedUsers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockRequestHelper := mock.NewMockRequestHelper(ctrl)
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).AnyTimes().Return(nil, nil)
-	adapter.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
+	middleware.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
 }
 
@@ -37,10 +37,10 @@ func TestAuthMwLetsAuthorizedRequestPass(t *testing.T) {
 	req.Header.Add("Authorization", "Bearer "+token)
 	ctrl := gomock.NewController(t)
 	mockRequestHelper := mock.NewMockRequestHelper(ctrl)
-	claims := adapter.Claims{
+	claims := middleware.Claims{
 		Email: "test@example.com",
 	}
 	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).AnyTimes().Return(&claims, nil)
-	adapter.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
+	middleware.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
 	assert.Equal(t, responseStatus, responseRecorder.Code)
 }
