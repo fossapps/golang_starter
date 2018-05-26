@@ -1,4 +1,4 @@
-package helpers
+package rate
 
 import (
 	"github.com/go-redis/redis"
