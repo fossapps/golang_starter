@@ -4,7 +4,6 @@ import (
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/migration"
-
 	"github.com/globalsign/mgo"
 )
 

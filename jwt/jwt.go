@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fossapps/starter/db"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/fossapps/starter/db"
 )
 
 // Client Creates and Parses Jwt

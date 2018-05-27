@@ -164,6 +164,7 @@ func TestLimitHandlesHitError(t *testing.T) {
 	handler(responseRecorder, request)
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
 }
+
 func TestLimitCallsHandler(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)

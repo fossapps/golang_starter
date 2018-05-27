@@ -1,11 +1,10 @@
 package starter
 
 import (
-	"github.com/fossapps/starter/middleware"
-
 	"net/http"
 	"time"
 
+	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/rate"
 	"github.com/gorilla/mux"
 	"gopkg.in/matryer/respond.v1"

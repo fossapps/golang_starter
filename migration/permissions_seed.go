@@ -2,7 +2,6 @@ package migration
 
 import (
 	"github.com/fossapps/starter/db"
-
 	"github.com/globalsign/mgo"
 )
 

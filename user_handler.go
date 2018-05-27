@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/fossapps/starter/db"
-
 	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
