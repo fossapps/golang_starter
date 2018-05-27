@@ -63,7 +63,7 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(true, nil)
 	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
 	server := starter.Server{
-		Db:    mockDb,
+		Db: mockDb,
 	}
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewRegistration{
@@ -92,7 +92,7 @@ func TestServer_RegisterHandlerHandlesDbError(t *testing.T) {
 	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false, errors.New("db error"))
 	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
 	server := starter.Server{
-		Db:    mockDb,
+		Db: mockDb,
 	}
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewRegistration{
