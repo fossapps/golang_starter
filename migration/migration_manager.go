@@ -14,7 +14,12 @@ func ApplyAll(dbLayer db.DB) {
 
 // Apply individual migration to a db
 func Apply(migration Migration, dbLayer db.DB) {
-	if !dbLayer.Migrations().ShouldRun(migration.GetKey()) {
+	applied, err := dbLayer.Migrations().IsApplied(migration.GetKey())
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	if applied {
 		return
 	}
 	key := migration.GetKey()

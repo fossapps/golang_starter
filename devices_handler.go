@@ -35,6 +35,17 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid token")
 			return
 		}
+		database := s.Db.Clone()
+		defer database.Close()
+		exists, err := database.Devices().Exists(registration.Token)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
+		if exists {
+			s.ErrorResponse(w, r, http.StatusBadRequest, "already registered")
+			return
+		}
 		_, pushyErr, err := s.Pushy.DeviceInfo(registration.Token)
 		// todo maybe we want to use the cache.Remember thing? so later it'll be a breeze if we want to get data
 		if err != nil || pushyErr != nil {
@@ -42,10 +53,6 @@ func (s *Server) RegisterHandler() http.HandlerFunc {
 			return
 		}
 		// save to mongodb
-		if s.Db.Devices().Exists(registration.Token) {
-			s.ErrorResponse(w, r, http.StatusBadRequest, "already registered")
-			return
-		}
 		err = s.Db.Devices().Register(registration.Token)
 
 		if err != nil {

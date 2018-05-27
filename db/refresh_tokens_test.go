@@ -20,7 +20,9 @@ func TestRefreshTokenLayer_FindOneReturnsNilIfRefreshTokenDoesNotExist(t *testin
 	defer database.DropDatabase()
 
 	refreshTokenManager := db.GetRefreshTokenManager(database)
-	expect.Nil(refreshTokenManager.FindOne("tokenWhichNeverExist"))
+	result, err := refreshTokenManager.FindOne("tokenWhichNeverExist")
+	expect.Nil(result)
+	expect.Nil(err)
 }
 
 func TestRefreshTokenLayer_AddWorksAsExpected(t *testing.T) {
@@ -34,9 +36,10 @@ func TestRefreshTokenLayer_AddWorksAsExpected(t *testing.T) {
 	token := "myTestToken"
 	user := "testUser1"
 	refreshTokenManager.Add(token, user)
-	refToken := refreshTokenManager.FindOne(token)
+	refToken, err := refreshTokenManager.FindOne(token)
 	expect.Equal(token, refToken.Token)
 	expect.Equal(user, refToken.User)
+	expect.Nil(err)
 }
 
 func TestRefreshTokenLayer_List(t *testing.T) {
@@ -78,18 +81,35 @@ func TestRefreshTokenLayer_Delete(t *testing.T) {
 	refreshTokenManager.Add("test_token3", user2)
 	refreshTokenManager.Add("test_token4", user2)
 	// perform delete
-	expect.NotNil(refreshTokenManager.FindOne("test_token1"))
-	expect.NotNil(refreshTokenManager.FindOne("test_token2"))
-	expect.NotNil(refreshTokenManager.FindOne("test_token3"))
-	expect.NotNil(refreshTokenManager.FindOne("test_token4"))
+	// todo table testing
+	token, err := refreshTokenManager.FindOne("test_token1")
+	expect.NotNil(token)
+	expect.Nil(err)
+	token, err = refreshTokenManager.FindOne("test_token2")
+	expect.NotNil(token)
+	expect.Nil(err)
+	token, err = refreshTokenManager.FindOne("test_token3")
+	expect.NotNil(token)
+	expect.Nil(err)
+	token, err = refreshTokenManager.FindOne("test_token4")
+	expect.NotNil(token)
+	expect.Nil(err)
 	// everything exists till now
 	expect.Nil(refreshTokenManager.Delete("test_token1"))
-	expect.Nil(refreshTokenManager.FindOne("test_token1"))
+	token, err = refreshTokenManager.FindOne("test_token1")
+	expect.Nil(token)
+	expect.Nil(err)
 	expect.Nil(refreshTokenManager.Delete("test_token2"))
-	expect.Nil(refreshTokenManager.FindOne("test_token2"))
+	token, err = refreshTokenManager.FindOne("test_token2")
+	expect.Nil(token)
+	expect.Nil(err)
 	expect.Nil(refreshTokenManager.Delete("test_token3"))
-	expect.Nil(refreshTokenManager.FindOne("test_token3"))
+	token, err = refreshTokenManager.FindOne("test_token3")
+	expect.Nil(token)
+	expect.Nil(err)
 	expect.Nil(refreshTokenManager.Delete("test_token4"))
-	expect.Nil(refreshTokenManager.FindOne("test_token4"))
+	token, err = refreshTokenManager.FindOne("test_token4")
+	expect.Nil(token)
+	expect.Nil(err)
 	// maybe it's a good idea to add table driven tests here.
 }

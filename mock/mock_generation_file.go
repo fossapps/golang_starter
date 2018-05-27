@@ -9,5 +9,6 @@
 //go:generate mockgen -destination=./mock_migration_implementation.go -package=mock github.com/fossapps/starter/migration Migration
 //go:generate mockgen -destination=./mock_logger.go -package=mock github.com/fossapps/starter Logger
 //go:generate mockgen -destination=./mock_request_helper.go -package=mock github.com/fossapps/starter RequestHelper
+//go:generate mockgen -destination=./mock_pushy_client.go -package=mock github.com/cyberhck/pushy IPushyClient
 
 package mock

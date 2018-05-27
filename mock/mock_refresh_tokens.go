@@ -5,10 +5,9 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	db "github.com/fossapps/starter/db"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockRefreshTokenManager is a mock of RefreshTokenManager interface
@@ -35,8 +34,10 @@ func (m *MockRefreshTokenManager) EXPECT() *MockRefreshTokenManagerMockRecorder 
 }
 
 // Add mocks base method
-func (m *MockRefreshTokenManager) Add(arg0, arg1 string) {
-	m.ctrl.Call(m, "Add", arg0, arg1)
+func (m *MockRefreshTokenManager) Add(arg0, arg1 string) error {
+	ret := m.ctrl.Call(m, "Add", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Add indicates an expected call of Add
@@ -57,10 +58,11 @@ func (mr *MockRefreshTokenManagerMockRecorder) Delete(arg0 interface{}) *gomock.
 }
 
 // FindOne mocks base method
-func (m *MockRefreshTokenManager) FindOne(arg0 string) *db.RefreshToken {
+func (m *MockRefreshTokenManager) FindOne(arg0 string) (*db.RefreshToken, error) {
 	ret := m.ctrl.Call(m, "FindOne", arg0)
 	ret0, _ := ret[0].(*db.RefreshToken)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FindOne indicates an expected call of FindOne

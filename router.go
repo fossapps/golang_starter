@@ -45,7 +45,7 @@ func (r router) userResource() {
 		Methods("POST")
 	r.router.Handle(
 		"/users/{user}",
-		middleware.Adapt(r.server.EditUser(), middleware.MustHavePermission(r.perm.User.Edit))).
+		middleware.Adapt(r.server.UpdateUser(), middleware.MustHavePermission(r.perm.User.Edit))).
 		Methods("PUT")
 	r.router.Handle("/users/{user}", r.server.GetUser()).Methods("GET")
 }

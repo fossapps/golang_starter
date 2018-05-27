@@ -21,7 +21,8 @@ func TestPermissionLayer_Create(t *testing.T) {
 	permissionManager := db.GetPermissionManager(database)
 	key := "test_permission"
 	description := "random description"
-	permissionManager.Create(key, description)
+	err = permissionManager.Create(key, description)
+	expect.Nil(err)
 	permissions, err := permissionManager.List()
 	expect.Nil(err)
 	expect.Equal(key, permissions[0].Key)
@@ -40,4 +41,29 @@ func TestPermissionLayer_Create_ReturnsErrorIfAlreadyExists(t *testing.T) {
 	permissionManager.Create(key, description)
 	err = permissionManager.Create(key, description)
 	expect.NotNil(err)
+}
+
+func TestPermissionManager_Exists(t *testing.T) {
+	expect := assert.New(t)
+	session, err := mgo.Dial(config.GetMongoConfig().Connection)
+	expect.Nil(err)
+	database := session.DB(config.GetTestingDbName())
+	defer database.DropDatabase()
+	permissionManager := db.GetPermissionManager(database)
+	permissionManager.Create("test_permission", "description")
+	res, err := permissionManager.Exists("test_permission")
+	expect.True(res)
+	expect.Nil(err)
+}
+func TestPermissionManager_List(t *testing.T) {
+	expect := assert.New(t)
+	session, err := mgo.Dial(config.GetMongoConfig().Connection)
+	expect.Nil(err)
+	database := session.DB(config.GetTestingDbName())
+	defer database.DropDatabase()
+	permissionManager := db.GetPermissionManager(database)
+	permissionManager.Create("test_permission", "description")
+	list, err := permissionManager.List()
+	expect.Nil(err)
+	expect.True(len(list) > 0)
 }

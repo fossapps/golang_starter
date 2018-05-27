@@ -1,5 +1,3 @@
-//go:generate mockgen -destination=./mock/mock_pushy_client.go -package=mock github.com/cyberhck/pushy IPushyClient
-
 package starter_test
 
 import (
@@ -19,7 +17,7 @@ import (
 	"github.com/fossapps/starter"
 )
 
-func TestServer_RegisterHandlerReturnsBadRequestRequestIfJsonInvalid(t *testing.T) {
+func TestServer_RegisterHandlerReturnsUnprocessableEntityRequestIfJsonInvalid(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/", nil)
@@ -58,17 +56,14 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	mockDevicesCtrl := gomock.NewController(t)
 	defer mockDevicesCtrl.Finish()
 	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
 	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
 	token := "some_random_large_token_which_is_checked"
-	pushyCtrl := gomock.NewController(t)
-	defer pushyCtrl.Finish()
-	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
-	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
-	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(true)
+	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(true, nil)
 	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
 	server := starter.Server{
 		Db:    mockDb,
-		Pushy: mockPushy,
 	}
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewRegistration{
@@ -83,6 +78,32 @@ func TestServer_RegisterHandlerReturnsBadRequestIfDuplicate(t *testing.T) {
 	expect.Equal("already registered", res.Message)
 }
 
+func TestServer_RegisterHandlerHandlesDbError(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	defer mockDbCtrl.Finish()
+	mockDevicesCtrl := gomock.NewController(t)
+	defer mockDevicesCtrl.Finish()
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
+	token := "some_random_large_token_which_is_checked"
+	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false, errors.New("db error"))
+	mockDb.EXPECT().Devices().Times(1).Return(mockDeviceManager)
+	server := starter.Server{
+		Db:    mockDb,
+	}
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(starter.NewRegistration{
+		Token: token,
+	})
+	request := httptest.NewRequest("POST", "/", buffer)
+	responseRecorder := httptest.NewRecorder()
+	server.RegisterHandler()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
 func TestServer_RegisterHandlerReturnsInternalServerIfDbError(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
@@ -90,13 +111,15 @@ func TestServer_RegisterHandlerReturnsInternalServerIfDbError(t *testing.T) {
 	mockDevicesCtrl := gomock.NewController(t)
 	defer mockDevicesCtrl.Finish()
 	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
 	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
 	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
 	token := "some_random_large_token_which_is_checked"
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
-	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
+	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false, nil)
 	mockDeviceManager.EXPECT().Register(token).Times(1).Return(errors.New("db error"))
 	mockDb.EXPECT().Devices().MinTimes(1).Return(mockDeviceManager)
 	server := starter.Server{
@@ -128,8 +151,10 @@ func TestServer_RegisterHandlerRegisters(t *testing.T) {
 	token := "some_random_large_token_which_is_checked"
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, nil, nil)
 	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
 	mockDeviceManager := mock.NewMockDeviceManager(mockDevicesCtrl)
-	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false)
+	mockDeviceManager.EXPECT().Exists(token).Times(1).Return(false, nil)
 	mockDeviceManager.EXPECT().Register(token).Times(1).Return(nil)
 	mockDb.EXPECT().Devices().MinTimes(1).Return(mockDeviceManager)
 	server := starter.Server{
@@ -155,6 +180,8 @@ func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *tes
 	mockDbCtrl := gomock.NewController(t)
 	defer mockDbCtrl.Finish()
 	mockDb := mock.NewMockDB(mockDbCtrl)
+	deviceManagerCtrl := gomock.NewController(t)
+	deviceManager := mock.NewMockDeviceManager(deviceManagerCtrl)
 	pushyCtrl := gomock.NewController(t)
 	defer pushyCtrl.Finish()
 	mockPushy := mock.NewMockIPushyClient(pushyCtrl)
@@ -163,6 +190,10 @@ func TestServer_RegisterHandlerRespondsWithBadRequestIfDeviceTokenInvalid(t *tes
 		Error: "We could not find a device with that token linked to your account.",
 	}
 	mockPushy.EXPECT().DeviceInfo(token).Return(nil, &mockPushyError, nil)
+	deviceManager.EXPECT().Exists(token).AnyTimes().Return(false, nil)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockDb.EXPECT().Devices().AnyTimes().Return(deviceManager)
 	server := starter.Server{
 		Db:    mockDb,
 		Pushy: mockPushy,

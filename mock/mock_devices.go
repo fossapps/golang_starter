@@ -5,10 +5,9 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	db "github.com/fossapps/starter/db"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockDeviceManager is a mock of DeviceManager interface
@@ -35,10 +34,11 @@ func (m *MockDeviceManager) EXPECT() *MockDeviceManagerMockRecorder {
 }
 
 // Exists mocks base method
-func (m *MockDeviceManager) Exists(arg0 string) bool {
+func (m *MockDeviceManager) Exists(arg0 string) (bool, error) {
 	ret := m.ctrl.Call(m, "Exists", arg0)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Exists indicates an expected call of Exists
@@ -47,10 +47,11 @@ func (mr *MockDeviceManagerMockRecorder) Exists(arg0 interface{}) *gomock.Call {
 }
 
 // FindByToken mocks base method
-func (m *MockDeviceManager) FindByToken(arg0 string) *db.Device {
+func (m *MockDeviceManager) FindByToken(arg0 string) (*db.Device, error) {
 	ret := m.ctrl.Call(m, "FindByToken", arg0)
 	ret0, _ := ret[0].(*db.Device)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FindByToken indicates an expected call of FindByToken

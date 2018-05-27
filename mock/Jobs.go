@@ -82,14 +82,14 @@ func (mr *MockICronJobMockRecorder) RuntimeProcessor() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RuntimeProcessor", reflect.TypeOf((*MockICronJob)(nil).RuntimeProcessor))
 }
 
-// ShouldRun mock base method
+// IsApplied mock base method
 func (m *MockICronJob) ShouldRun(arg0 string) bool {
-	ret := m.ctrl.Call(m, "ShouldRun", arg0)
+	ret := m.ctrl.Call(m, "IsApplied", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// ShouldRun indicates an expected call of ShouldRun
+// IsApplied indicates an expected call of IsApplied
 func (mr *MockICronJobMockRecorder) ShouldRun(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldRun", reflect.TypeOf((*MockICronJob)(nil).ShouldRun), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsApplied", reflect.TypeOf((*MockICronJob)(nil).ShouldRun), arg0)
 }

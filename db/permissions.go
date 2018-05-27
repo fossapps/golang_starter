@@ -16,7 +16,7 @@ type Permission struct {
 // PermissionManager deals with Permission persistence
 type PermissionManager interface {
 	Create(key string, description string) error
-	Exists(key string) bool
+	Exists(key string) (bool, error)
 	List() ([]Permission, error)
 }
 
@@ -27,7 +27,11 @@ type permissionManager struct {
 
 // Create a permission given key and description
 func (pLayer permissionManager) Create(key string, description string) error {
-	if pLayer.Exists(key) {
+	exists, err := pLayer.Exists(key)
+	if err != nil {
+		return err
+	}
+	if exists {
 		return errors.New("permission already exists")
 	}
 	return pLayer.db.C("permissions").Insert(Permission{
@@ -37,12 +41,15 @@ func (pLayer permissionManager) Create(key string, description string) error {
 }
 
 // Exists returns weather or not a permission already exists
-func (pLayer permissionManager) Exists(key string) bool {
+func (pLayer permissionManager) Exists(key string) (bool, error) {
 	var perm Permission
-	pLayer.db.C("permissions").Find(bson.M{
+	err := pLayer.db.C("permissions").Find(bson.M{
 		"key": key,
 	}).One(&perm)
-	return perm.Key == key
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+	return perm.Key == key, err
 }
 
 // List all permissions available

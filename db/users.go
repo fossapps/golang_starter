@@ -8,11 +8,11 @@ import (
 
 // UserManager deals with anything related to User Persistence
 type UserManager interface {
-	FindByEmail(email string) *User
-	FindByID(id string) *User
+	FindByEmail(email string) (*User, error)
+	FindByID(id string) (*User, error)
 	Create(user User) error
 	List() ([]User, error)
-	Edit(id string, user User) error
+	Update(id string, user User) error
 }
 
 // User is representation of a user
@@ -29,27 +29,39 @@ type UserLayer struct {
 }
 
 // FindByEmail given email, returns a User
-func (dbLayer UserLayer) FindByEmail(email string) *User {
+func (dbLayer UserLayer) FindByEmail(email string) (*User, error) {
 	var user User
-	dbLayer.db.C("users").Find(bson.M{
+	err := dbLayer.db.C("users").Find(bson.M{
 		"email": email,
 	}).One(&user)
-	if user.Email == "" {
-		return nil
+	if err == mgo.ErrNotFound {
+		return nil, nil
 	}
-	return &user
+	if err != nil {
+		return nil, err
+	}
+	if user.Email == "" {
+		return nil, nil
+	}
+	return &user, nil
 }
 
 // FindByID given id of user, returns a User
-func (dbLayer UserLayer) FindByID(id string) *User {
+func (dbLayer UserLayer) FindByID(id string) (*User, error) {
 	user := new(User)
-	dbLayer.db.C("users").Find(bson.M{
+	err := dbLayer.db.C("users").Find(bson.M{
 		"_id": bson.ObjectIdHex(id),
 	}).One(&user)
-	if user.ID == "" {
-		return nil
+	if err == mgo.ErrNotFound {
+		return nil, nil
 	}
-	return user
+	if err != nil {
+		return nil, err
+	}
+	if user.ID == "" {
+		return nil, nil
+	}
+	return user, nil
 }
 
 // Create a user, returns error if there's one
@@ -66,8 +78,8 @@ func (dbLayer UserLayer) List() ([]User, error) {
 	return users, err
 }
 
-// Edit a user by id
-func (dbLayer UserLayer) Edit(id string, user User) error {
+// Update a user by id
+func (dbLayer UserLayer) Update(id string, user User) error {
 	// todo if there's password, it needs to be crypted as well.
 	return dbLayer.db.C("users").Update(bson.M{
 		"_id": bson.ObjectIdHex(id),

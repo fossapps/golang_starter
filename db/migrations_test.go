@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMigrationManagerLayer_ShouldRun(t *testing.T) {
+func TestMigrationManagerLayer_IsApplied(t *testing.T) {
 	expect := assert.New(t)
 	session, err := mgo.Dial(config.GetMongoConfig().Connection)
 	expect.Nil(err)
@@ -20,7 +20,12 @@ func TestMigrationManagerLayer_ShouldRun(t *testing.T) {
 	defer database.DropDatabase()
 	expect.NotNil(database)
 	migrationManagerLayer := db.GetMigrationManager(database)
-	expect.True(migrationManagerLayer.ShouldRun("migration_key"))
-	migrationManagerLayer.MarkApplied("migration_key", "description")
-	expect.False(migrationManagerLayer.ShouldRun("migration_key"))
+	result, err := migrationManagerLayer.IsApplied("migration_key")
+	expect.False(result)
+	expect.Nil(err)
+	err = migrationManagerLayer.MarkApplied("migration_key", "description")
+	expect.Nil(err)
+	result, err = migrationManagerLayer.IsApplied("migration_key")
+	expect.True(result)
+	expect.Nil(err)
 }

@@ -13,8 +13,8 @@ type RefreshToken struct {
 
 // RefreshTokenManager deals with persistence of RefreshTokens
 type RefreshTokenManager interface {
-	FindOne(token string) *RefreshToken
-	Add(token string, user string)
+	FindOne(token string) (*RefreshToken, error)
+	Add(token string, user string) error
 	List(user string) ([]RefreshToken, error)
 	Delete(token string) error
 }
@@ -24,23 +24,29 @@ type refreshTokenManager struct {
 }
 
 // Add a refresh token for a user
-func (dbLayer refreshTokenManager) Add(token string, user string) {
-	dbLayer.db.C("refresh_tokens").Insert(RefreshToken{
+func (dbLayer refreshTokenManager) Add(token string, user string) error {
+	return dbLayer.db.C("refresh_tokens").Insert(RefreshToken{
 		Token: token,
 		User:  user,
 	})
 }
 
 // FindOne using token
-func (dbLayer refreshTokenManager) FindOne(token string) *RefreshToken {
+func (dbLayer refreshTokenManager) FindOne(token string) (*RefreshToken, error) {
 	refreshToken := new(RefreshToken)
-	dbLayer.db.C("refresh_tokens").Find(bson.M{
+	err := dbLayer.db.C("refresh_tokens").Find(bson.M{
 		"token": token,
 	}).One(&refreshToken)
-	if refreshToken.Token == "" {
-		return nil
+	if err == mgo.ErrNotFound {
+		return nil, nil
 	}
-	return refreshToken
+	if err != nil {
+		return nil, err
+	}
+	if refreshToken.Token == "" {
+		return nil, nil
+	}
+	return refreshToken, nil
 }
 
 // List all tokens belonging to user
