@@ -5,10 +5,11 @@
 package mock
 
 import (
-	redis "github.com/go-redis/redis"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
+
+	redis "github.com/go-redis/redis"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockRedisClient is a mock of RedisClient interface

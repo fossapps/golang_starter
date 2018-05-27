@@ -1,9 +1,9 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
-	"errors"
 	"time"
 
 	"github.com/fossapps/starter/db"

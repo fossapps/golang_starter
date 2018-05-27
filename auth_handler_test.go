@@ -12,14 +12,15 @@ import (
 	"github.com/fossapps/starter/mock"
 
 	"errors"
+
+	"github.com/fossapps/starter/jwt"
+	"github.com/fossapps/starter/logger"
 	"github.com/globalsign/mgo"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/fossapps/starter/logger"
-	"github.com/fossapps/starter/jwt"
 )
 
 func getLogger() logger.Client {
@@ -143,9 +144,9 @@ func TestServer_LoginHandlerHandlesJwtGenerationError(t *testing.T) {
 	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := starter.Server{
-		Db:  mockDb,
-		Jwt: mockJwt,
-		Logger:getLogger(),
+		Db:     mockDb,
+		Jwt:    mockJwt,
+		Logger: getLogger(),
 	}
 
 	responseRecorder := httptest.NewRecorder()

@@ -9,13 +9,13 @@ import (
 	"github.com/cyberhck/pushy"
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
+	"github.com/fossapps/starter/jwt"
+	"github.com/fossapps/starter/logger"
 	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/redis"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/handlers"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/fossapps/starter/jwt"
-	"github.com/fossapps/starter/logger"
 )
 
 // Server is a global struct which holds implementation of different things application depends on.

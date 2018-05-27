@@ -1,17 +1,18 @@
 package middleware_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"github.com/fossapps/starter/jwt"
 	"github.com/fossapps/starter/middleware"
+	"github.com/fossapps/starter/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/golang/mock/gomock"
-	"github.com/fossapps/starter/mock"
-	"errors"
-	"github.com/fossapps/starter/jwt"
-	"strings"
 )
 
 func getFakeJWTWithPermission(permissions []string) string {
@@ -39,7 +40,7 @@ func TestMustHavePermissionLetsHttpHandlerSetStatusCodeIfHavePermission(t *testi
 	mockJwtCtrl := gomock.NewController(t)
 	defer mockJwtCtrl.Finish()
 	mockJwt := mock.NewMockJwtManager(mockJwtCtrl)
-	mockJwt.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(&jwt.Claims{Permissions:[]string{"user.create"}}, nil)
+	mockJwt.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(&jwt.Claims{Permissions: []string{"user.create"}}, nil)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		respond.With(w, r, http.StatusNotImplemented, nil)
 	})
@@ -71,7 +72,7 @@ func TestMustHavePermissionLetsSudoPermissionThrough(t *testing.T) {
 	mockJwtCtrl := gomock.NewController(t)
 	defer mockJwtCtrl.Finish()
 	mockJwt := mock.NewMockJwtManager(mockJwtCtrl)
-	mockJwt.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(&jwt.Claims{Permissions:[]string{"sudo"}}, nil)
+	mockJwt.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(&jwt.Claims{Permissions: []string{"sudo"}}, nil)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		respond.With(w, r, http.StatusNotImplemented, nil)
 	})

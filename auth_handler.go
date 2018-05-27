@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-		"github.com/fossapps/starter/config"
-			"github.com/fossapps/starter/transformer"
+
+	"github.com/fossapps/starter/config"
+	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"

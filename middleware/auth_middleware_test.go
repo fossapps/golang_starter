@@ -8,10 +8,10 @@ import (
 	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/mock"
 
+	"github.com/fossapps/starter/jwt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/fossapps/starter/jwt"
 )
 
 func TestAuthMwBlocksUnauthorizedUsers(t *testing.T) {

@@ -6,12 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fossapps/starter/jwt"
 	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
-	"github.com/fossapps/starter/jwt"
 )
 
 // region setup data

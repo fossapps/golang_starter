@@ -5,11 +5,12 @@
 package mock
 
 import (
+	http "net/http"
+	reflect "reflect"
+
 	db "github.com/fossapps/starter/db"
 	jwt "github.com/fossapps/starter/jwt"
 	gomock "github.com/golang/mock/gomock"
-	http "net/http"
-	reflect "reflect"
 )
 
 // MockJwtManager is a mock of Manager interface

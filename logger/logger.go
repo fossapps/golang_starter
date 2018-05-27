@@ -1,10 +1,10 @@
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/fossapps/starter/config"
-	"github.com/multiplay/go-slack/lrhook"
 	"github.com/multiplay/go-slack/chat"
+	"github.com/multiplay/go-slack/lrhook"
+	"github.com/sirupsen/logrus"
 )
 
 // Client needs to be implemented for a logger to be used on this project

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"gopkg.in/matryer/respond.v1"
 	"github.com/fossapps/starter/jwt"
+	"gopkg.in/matryer/respond.v1"
 )
 
 // RequestHelper see RequestHelper in server.go

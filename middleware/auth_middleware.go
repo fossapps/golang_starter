@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"gopkg.in/matryer/respond.v1"
 	"github.com/fossapps/starter/jwt"
+	"gopkg.in/matryer/respond.v1"
 )
 
 // AuthMw ensures request is authenticated
