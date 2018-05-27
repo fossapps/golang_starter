@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/fossapps/starter/jwt"
 	"gopkg.in/matryer/respond.v1"
 )
 
 // RequestHelper see RequestHelper in server.go
 type RequestHelper interface {
-	GetJwtData(r *http.Request) (*Claims, error)
 	GetIPAddress(r *http.Request) string
 }
 
@@ -27,6 +27,7 @@ type LimiterOptions struct {
 	AddHeaders    bool
 	Logger        Logger
 	Limiter       RateLimiter
+	Jwt           jwt.Manager
 }
 
 // Logger implementation needed for Limit middleware to log
@@ -38,7 +39,7 @@ type Logger interface {
 func Limit(options LimiterOptions) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			key := getKeyFromRequest(options.Namespace, r, options.RequestHelper)
+			key := getKeyFromRequest(options.Namespace, r, options.RequestHelper, options.Jwt)
 
 			card, err := options.Limiter.Count(key)
 			if err != nil {
@@ -74,8 +75,8 @@ func (limiter LimiterOptions) addHeaders(w http.ResponseWriter, currentCount int
 	w.Header().Add("X-RateLimit-Remaining", strconv.FormatInt(remaining, 10))
 }
 
-func getKeyFromRequest(namespace string, r *http.Request, requestHelper RequestHelper) string {
-	data, err := requestHelper.GetJwtData(r)
+func getKeyFromRequest(namespace string, r *http.Request, requestHelper RequestHelper, jwtClient jwt.Manager) string {
+	data, err := jwtClient.GetJwtDataFromRequest(r)
 	if err != nil {
 		return namespace + "-" + requestHelper.GetIPAddress(r)
 	}

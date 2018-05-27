@@ -33,19 +33,19 @@ func (r router) deviceResource() {
 func (r router) userResource() {
 	r.router.HandleFunc(
 		"/users",
-		middleware.Adapt(r.server.CreateUser(), middleware.MustHavePermission(r.perm.User.Create))).
+		middleware.Adapt(r.server.CreateUser(), middleware.MustHavePermission(r.perm.User.Create, r.server.Jwt))).
 		Methods("POST")
 
 	r.router.HandleFunc(
 		"/users", middleware.Adapt(r.server.ListUsers(),
-			middleware.MustHavePermission(r.perm.User.List))).
+			middleware.MustHavePermission(r.perm.User.List, r.server.Jwt))).
 		Methods("GET")
 
 	r.router.Handle("/users/available", r.server.UserAvailability()).
 		Methods("POST")
 	r.router.Handle(
 		"/users/{user}",
-		middleware.Adapt(r.server.UpdateUser(), middleware.MustHavePermission(r.perm.User.Edit))).
+		middleware.Adapt(r.server.UpdateUser(), middleware.MustHavePermission(r.perm.User.Edit, r.server.Jwt))).
 		Methods("PUT")
 	r.router.Handle("/users/{user}", r.server.GetUser()).Methods("GET")
 }
@@ -53,7 +53,7 @@ func (r router) userResource() {
 func (r router) permissionsResource() {
 	r.router.HandleFunc(
 		"/permissions", middleware.Adapt(r.server.ListPermissions(),
-			middleware.AuthMw(r.server.ReqHelper))).
+			middleware.AuthMw(r.server.Jwt))).
 		Methods("GET")
 }
 
@@ -66,7 +66,7 @@ func (r router) authResource() {
 
 	r.router.HandleFunc(
 		"/session",
-		middleware.Adapt(r.server.RefreshTokensList(), middleware.AuthMw(r.server.ReqHelper))).
+		middleware.Adapt(r.server.RefreshTokensList(), middleware.AuthMw(r.server.Jwt))).
 		Methods("GET")
 	r.router.HandleFunc("/session/{token}", r.server.DeleteSession()).Methods("DELETE")
 }

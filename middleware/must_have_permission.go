@@ -3,39 +3,17 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/fossapps/starter/config"
-
-	"fmt"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/dgrijalva/jwt-go/request"
+	"github.com/fossapps/starter/jwt"
 	"gopkg.in/matryer/respond.v1"
 )
 
-// Claims data which is stored in JWT
-type Claims struct {
-	Email       string   `json:"email"`
-	ID          string   `json:"id"`
-	Permissions []string `json:"permissions"`
-	jwt.StandardClaims
-}
-
-func signingFunc(token *jwt.Token) (interface{}, error) {
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-	}
-	return []byte(config.GetApplicationConfig().JWTSecret), nil
-}
-
 // MustHavePermission is a middleware which ensures a request has permission before handler is invoked
-func MustHavePermission(permission string) Middleware {
+func MustHavePermission(permission string, manager jwt.Manager) Middleware {
 	return func(handler http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			var claims Claims
-			token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
+			claims, err := manager.GetJwtDataFromRequest(r)
 			// if user has sudo, skip permission checking
-			err := claims.Valid()
-			if parseErr != nil || err != nil || !token.Valid {
+			if err != nil {
 				respond.With(w, r, http.StatusForbidden, struct {
 					Message string `json:"message"`
 				}{

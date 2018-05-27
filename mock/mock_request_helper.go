@@ -8,7 +8,6 @@ import (
 	http "net/http"
 	reflect "reflect"
 
-	middleware "github.com/fossapps/starter/middleware"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -45,17 +44,4 @@ func (m *MockRequestHelper) GetIPAddress(arg0 *http.Request) string {
 // GetIPAddress indicates an expected call of GetIPAddress
 func (mr *MockRequestHelperMockRecorder) GetIPAddress(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIPAddress", reflect.TypeOf((*MockRequestHelper)(nil).GetIPAddress), arg0)
-}
-
-// GetJwtData mocks base method
-func (m *MockRequestHelper) GetJwtData(arg0 *http.Request) (*middleware.Claims, error) {
-	ret := m.ctrl.Call(m, "GetJwtData", arg0)
-	ret0, _ := ret[0].(*middleware.Claims)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetJwtData indicates an expected call of GetJwtData
-func (mr *MockRequestHelperMockRecorder) GetJwtData(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJwtData", reflect.TypeOf((*MockRequestHelper)(nil).GetJwtData), arg0)
 }
