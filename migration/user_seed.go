@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/fossapps/starter/db"
-
 	"github.com/globalsign/mgo"
 )
 

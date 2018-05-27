@@ -7,7 +7,6 @@ import (
 
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
-
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"
 )

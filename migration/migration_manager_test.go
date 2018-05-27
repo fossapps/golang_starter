@@ -5,7 +5,6 @@ import (
 
 	"github.com/fossapps/starter/migration"
 	"github.com/fossapps/starter/mock"
-
 	"github.com/golang/mock/gomock"
 )
 

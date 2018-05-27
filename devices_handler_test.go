@@ -8,13 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fossapps/starter/mock"
-
 	"github.com/cyberhck/pushy"
+	"github.com/fossapps/starter"
+	"github.com/fossapps/starter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/fossapps/starter"
 )
 
 func TestServer_RegisterHandlerReturnsUnprocessableEntityRequestIfJsonInvalid(t *testing.T) {

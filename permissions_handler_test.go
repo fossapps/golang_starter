@@ -10,7 +10,6 @@ import (
 	"github.com/fossapps/starter"
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/mock"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

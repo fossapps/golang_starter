@@ -2,6 +2,7 @@ package starter_test
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,12 +10,9 @@ import (
 
 	"github.com/fossapps/starter"
 	"github.com/fossapps/starter/db"
-	"github.com/fossapps/starter/mock"
-
-	"errors"
-
 	"github.com/fossapps/starter/jwt"
 	"github.com/fossapps/starter/logger"
+	"github.com/fossapps/starter/mock"
 	"github.com/globalsign/mgo"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"

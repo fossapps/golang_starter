@@ -11,7 +11,6 @@ import (
 	"github.com/fossapps/starter"
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/mock"
-
 	"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
