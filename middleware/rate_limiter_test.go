@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
+	"github.com/fossapps/starter/jwt"
 )
 
 // region setup data
@@ -18,6 +19,11 @@ import (
 func getMockRequestHelper(t *testing.T) *mock.MockRequestHelper {
 	ctrl := gomock.NewController(t)
 	return mock.NewMockRequestHelper(ctrl)
+}
+
+func getMockJwtHelper(t *testing.T) *mock.MockJwtManager {
+	ctrl := gomock.NewController(t)
+	return mock.NewMockJwtManager(ctrl)
 }
 
 func getMockLogger(t *testing.T) *mock.MockLogger {
@@ -51,10 +57,12 @@ func getLimiterOptions(t *testing.T) middleware.LimiterOptions {
 func TestLimitUsesUserIdIfAvailable(t *testing.T) {
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.Limiter = mockRateLimiter
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
@@ -65,12 +73,14 @@ func TestLimitUsesUserIdIfAvailable(t *testing.T) {
 func TestLimitUsesIpAddrIfIdNotAvailable(t *testing.T) {
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(nil, errors.New("error"))
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(nil, errors.New("error"))
 	mockRequestHelper.EXPECT().GetIPAddress(gomock.Any()).Times(1).Return("ip_addr")
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-ip_addr").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
@@ -81,11 +91,13 @@ func TestLimitReturnsInternalServerErrorIfCountNull(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/", nil)
@@ -97,11 +109,13 @@ func TestLimitReturnsTooManyRequestIfCountGreaterThanOrEqualToLimit(t *testing.T
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(5), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.AddHeaders = false
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
@@ -114,11 +128,13 @@ func TestLimitReturnsTooManyRequestIfCountGreaterThanOrEqualToLimitAndAddsHeader
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(5), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.AddHeaders = true
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
@@ -133,12 +149,14 @@ func TestLimitHandlesHitError(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), errors.New("error"))
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.AddHeaders = false
 	handler := middleware.Adapt(getTestHandler(http.StatusOK), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
@@ -150,12 +168,14 @@ func TestLimitCallsHandler(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.AddHeaders = false
 	handler := middleware.Adapt(getTestHandler(http.StatusAccepted), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()
@@ -168,12 +188,14 @@ func TestLimitCallsHandlerAndSetsHeaderIfRequested(t *testing.T) {
 	expect := assert.New(t)
 	limiterOptions := getLimiterOptions(t)
 	mockRequestHelper := getMockRequestHelper(t)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).Times(1).Return(&middleware.Claims{ID: "my_id"}, nil)
+	mockJwtHelper := getMockJwtHelper(t)
+	mockJwtHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).Times(1).Return(&jwt.Claims{ID: "my_id"}, nil)
 	mockRateLimiter := getMockRateLimiter(t)
 	mockRateLimiter.EXPECT().Count("my_key-my_id").Times(1).Return(int64(0), nil)
 	mockRateLimiter.EXPECT().Hit("my_key-my_id").Times(1).Return(int64(0), nil)
 	limiterOptions.RequestHelper = mockRequestHelper
 	limiterOptions.Limiter = mockRateLimiter
+	limiterOptions.Jwt = mockJwtHelper
 	limiterOptions.AddHeaders = true
 	handler := middleware.Adapt(getTestHandler(http.StatusAccepted), middleware.Limit(limiterOptions))
 	responseRecorder := httptest.NewRecorder()

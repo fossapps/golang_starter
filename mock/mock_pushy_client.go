@@ -5,10 +5,9 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	pushy "github.com/cyberhck/pushy"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockIPushyClient is a mock of IPushyClient interface
@@ -34,7 +33,7 @@ func (m *MockIPushyClient) EXPECT() *MockIPushyClientMockRecorder {
 	return m.recorder
 }
 
-// DeleteNotification mock base method
+// DeleteNotification mocks base method
 func (m *MockIPushyClient) DeleteNotification(arg0 string) (*pushy.SimpleSuccess, *pushy.Error, error) {
 	ret := m.ctrl.Call(m, "DeleteNotification", arg0)
 	ret0, _ := ret[0].(*pushy.SimpleSuccess)
@@ -48,7 +47,7 @@ func (mr *MockIPushyClientMockRecorder) DeleteNotification(arg0 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNotification", reflect.TypeOf((*MockIPushyClient)(nil).DeleteNotification), arg0)
 }
 
-// DeviceInfo mock base method
+// DeviceInfo mocks base method
 func (m *MockIPushyClient) DeviceInfo(arg0 string) (*pushy.DeviceInfo, *pushy.Error, error) {
 	ret := m.ctrl.Call(m, "DeviceInfo", arg0)
 	ret0, _ := ret[0].(*pushy.DeviceInfo)
@@ -62,7 +61,7 @@ func (mr *MockIPushyClientMockRecorder) DeviceInfo(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeviceInfo", reflect.TypeOf((*MockIPushyClient)(nil).DeviceInfo), arg0)
 }
 
-// DevicePresence mock base method
+// DevicePresence mocks base method
 func (m *MockIPushyClient) DevicePresence(arg0 ...string) (*pushy.DevicePresenceResponse, *pushy.Error, error) {
 	varargs := []interface{}{}
 	for _, a := range arg0 {
@@ -80,7 +79,7 @@ func (mr *MockIPushyClientMockRecorder) DevicePresence(arg0 ...interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DevicePresence", reflect.TypeOf((*MockIPushyClient)(nil).DevicePresence), arg0...)
 }
 
-// GetHTTPClient mock base method
+// GetHTTPClient mocks base method
 func (m *MockIPushyClient) GetHTTPClient() pushy.IHTTPClient {
 	ret := m.ctrl.Call(m, "GetHTTPClient")
 	ret0, _ := ret[0].(pushy.IHTTPClient)
@@ -92,7 +91,7 @@ func (mr *MockIPushyClientMockRecorder) GetHTTPClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHTTPClient", reflect.TypeOf((*MockIPushyClient)(nil).GetHTTPClient))
 }
 
-// NotificationStatus mock base method
+// NotificationStatus mocks base method
 func (m *MockIPushyClient) NotificationStatus(arg0 string) (*pushy.NotificationStatus, *pushy.Error, error) {
 	ret := m.ctrl.Call(m, "NotificationStatus", arg0)
 	ret0, _ := ret[0].(*pushy.NotificationStatus)
@@ -106,7 +105,7 @@ func (mr *MockIPushyClientMockRecorder) NotificationStatus(arg0 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotificationStatus", reflect.TypeOf((*MockIPushyClient)(nil).NotificationStatus), arg0)
 }
 
-// NotifyDevice mock base method
+// NotifyDevice mocks base method
 func (m *MockIPushyClient) NotifyDevice(arg0 pushy.SendNotificationRequest) (*pushy.NotificationResponse, *pushy.Error, error) {
 	ret := m.ctrl.Call(m, "NotifyDevice", arg0)
 	ret0, _ := ret[0].(*pushy.NotificationResponse)
@@ -120,7 +119,7 @@ func (mr *MockIPushyClientMockRecorder) NotifyDevice(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyDevice", reflect.TypeOf((*MockIPushyClient)(nil).NotifyDevice), arg0)
 }
 
-// SetHTTPClient mock base method
+// SetHTTPClient mocks base method
 func (m *MockIPushyClient) SetHTTPClient(arg0 pushy.IHTTPClient) {
 	m.ctrl.Call(m, "SetHTTPClient", arg0)
 }
@@ -130,7 +129,7 @@ func (mr *MockIPushyClientMockRecorder) SetHTTPClient(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetHTTPClient", reflect.TypeOf((*MockIPushyClient)(nil).SetHTTPClient), arg0)
 }
 
-// SubscribeToTopic mock base method
+// SubscribeToTopic mocks base method
 func (m *MockIPushyClient) SubscribeToTopic(arg0 string, arg1 ...string) (*pushy.SimpleSuccess, *pushy.Error, error) {
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
@@ -149,7 +148,7 @@ func (mr *MockIPushyClientMockRecorder) SubscribeToTopic(arg0 interface{}, arg1 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeToTopic", reflect.TypeOf((*MockIPushyClient)(nil).SubscribeToTopic), varargs...)
 }
 
-// UnsubscribeFromTopic mock base method
+// UnsubscribeFromTopic mocks base method
 func (m *MockIPushyClient) UnsubscribeFromTopic(arg0 string, arg1 ...string) (*pushy.SimpleSuccess, *pushy.Error, error) {
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {

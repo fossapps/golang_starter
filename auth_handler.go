@@ -5,13 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
-
-	"github.com/fossapps/starter/config"
-	"github.com/fossapps/starter/db"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/fossapps/starter/transformer"
+		"github.com/fossapps/starter/config"
+			"github.com/fossapps/starter/transformer"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -54,7 +49,7 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
-		jwtToken, err := getJwtForUser(user)
+		jwtToken, err := s.Jwt.CreateForUser(user)
 		if err != nil {
 			// since it's a separate thing, maybe application init test should take care of it
 			// then we don't need to check if it had an error?
@@ -104,7 +99,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
 			return
 		}
-		token, err = getJwtForUser(user)
+		token, err = s.Jwt.CreateForUser(user)
 		if err != nil {
 			// since it's a separate thing, maybe application init test should take care of it
 			// then we don't need to check if it had an error?
@@ -120,7 +115,7 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 // RefreshTokensList returns list of refresh token associated with a user
 func (s *Server) RefreshTokensList() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims, err := s.ReqHelper.GetJwtData(r)
+		claims, err := s.Jwt.GetJwtDataFromRequest(r)
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "error parsing token")
 			return
@@ -157,14 +152,4 @@ func getRefreshToken(length int) string {
 	b := make([]byte, length)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
-}
-
-func getJwtForUser(user *db.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"id":          user.ID,
-		"email":       user.Email,
-		"permissions": user.Permissions,
-		"exp":         time.Now().Add(config.GetApplicationConfig().JWTExpiryTime).Unix(),
-	})
-	return token.SignedString([]byte(config.GetApplicationConfig().JWTSecret))
 }

@@ -5,10 +5,9 @@
 package mock
 
 import (
-	reflect "reflect"
-
 	db "github.com/fossapps/starter/db"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockDB is a mock of DB interface

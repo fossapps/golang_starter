@@ -1,48 +1,32 @@
 package starter
 
 import (
-	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/cyberhck/pushy"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/dgrijalva/jwt-go/request"
 	"github.com/fossapps/starter/config"
 	"github.com/fossapps/starter/db"
 	"github.com/fossapps/starter/middleware"
 	"github.com/fossapps/starter/redis"
 	"github.com/globalsign/mgo"
 	"github.com/gorilla/handlers"
-	"github.com/multiplay/go-slack/chat"
-	"github.com/multiplay/go-slack/lrhook"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/matryer/respond.v1"
+	"github.com/fossapps/starter/jwt"
+	"github.com/fossapps/starter/logger"
 )
-
-// Logger needs to be implemented for a logger to be used on this project
-type Logger interface {
-	Info(args ...interface{})
-	Fatal(args ...interface{})
-	Error(args ...interface{})
-	Debug(args ...interface{})
-	Warn(args ...interface{})
-	Warning(args ...interface{})
-	Print(args ...interface{})
-	Panic(args ...interface{})
-}
 
 // Server is a global struct which holds implementation of different things application depends on.
 // One can think of this as dependency container
 type Server struct {
-	Logger    Logger
+	Logger    logger.Client
 	Db        db.DB
 	Redis     redis.Client
 	Pushy     pushy.IPushyClient
 	ReqHelper RequestHelper
+	Jwt       jwt.Manager
 }
 
 // SimpleResponse is used when our handler wants to responds with simple boolean type information, like success, or fail
@@ -90,35 +74,20 @@ func createServer() Server {
 	session := getMongo()
 	dbLayer := db.GetDbImplementation(session)
 	requestHelper := requestHelper{}
+	jwtManager := jwt.Client{
+		Config: jwt.Config{
+			Secret: config.GetApplicationConfig().JWTSecret,
+			Expiry: config.GetApplicationConfig().JWTExpiryTime,
+		},
+	}
 	return Server{
-		Logger:    getLogger(),
+		Logger:    logger.GetClient(config.GetLogLevel()),
 		Db:        dbLayer,
 		Redis:     *getRedis(),
 		Pushy:     getPushy(),
 		ReqHelper: requestHelper,
+		Jwt:       jwtManager,
 	}
-}
-
-func getLogger() Logger {
-	logger := logrus.New()
-	level, err := logrus.ParseLevel(config.GetLogLevel())
-	logger.AddHook(getSlackHook())
-	if err != nil {
-		panic(err)
-	}
-	logger.SetLevel(level)
-	return logger
-}
-
-func getSlackHook() *lrhook.Hook {
-	cfg := lrhook.Config{
-		MinLevel: logrus.WarnLevel,
-		Message: chat.Message{
-			Channel:   "#general",
-			IconEmoji: ":gopher:",
-		},
-	}
-	return lrhook.New(cfg, config.GetApplicationConfig().SlackLoggingAppConfig)
 }
 
 func getMongo() *mgo.Session {
@@ -150,23 +119,6 @@ func (s *Server) cleanup() {
 // requestHelper simple requestHelper implementation
 type requestHelper struct{}
 
-// GetJwtData util method to get data from request
-func (requestHelper) GetJwtData(r *http.Request) (*middleware.Claims, error) {
-	var claims middleware.Claims
-	token, parseErr := request.ParseFromRequestWithClaims(r, request.AuthorizationHeaderExtractor, &claims, signingFunc)
-	err := claims.Valid()
-	if parseErr != nil {
-		return nil, parseErr
-	}
-	if err != nil {
-		return nil, err
-	}
-	if !token.Valid {
-		return nil, errors.New("invalid token")
-	}
-	return &claims, nil
-}
-
 // GetIPAddress util method to get IP address from request
 func (requestHelper) GetIPAddress(r *http.Request) string {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
@@ -178,13 +130,5 @@ func (requestHelper) GetIPAddress(r *http.Request) string {
 
 // RequestHelper interface to implement to satisfy as a Request Helper for this application
 type RequestHelper interface {
-	GetJwtData(r *http.Request) (*middleware.Claims, error)
 	GetIPAddress(r *http.Request) string
-}
-
-func signingFunc(token *jwt.Token) (interface{}, error) {
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-	}
-	return []byte(config.GetApplicationConfig().JWTSecret), nil
 }

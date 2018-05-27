@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/matryer/respond.v1"
+	"github.com/fossapps/starter/jwt"
 )
 
 func TestAuthMwBlocksUnauthorizedUsers(t *testing.T) {
@@ -20,8 +21,8 @@ func TestAuthMwBlocksUnauthorizedUsers(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
 	ctrl := gomock.NewController(t)
-	mockRequestHelper := mock.NewMockRequestHelper(ctrl)
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).AnyTimes().Return(nil, nil)
+	mockRequestHelper := mock.NewMockJwtManager(ctrl)
+	mockRequestHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(nil, nil)
 	middleware.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
 	assert.Equal(t, http.StatusUnauthorized, responseRecorder.Code)
 }
@@ -33,14 +34,14 @@ func TestAuthMwLetsAuthorizedRequestPass(t *testing.T) {
 	})
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
-	token, _ := getFakeJWTWithPermission([]string{"user.create"})
+	token := getFakeJWTWithPermission([]string{"user.create"})
 	req.Header.Add("Authorization", "Bearer "+token)
 	ctrl := gomock.NewController(t)
-	mockRequestHelper := mock.NewMockRequestHelper(ctrl)
-	claims := middleware.Claims{
+	mockRequestHelper := mock.NewMockJwtManager(ctrl)
+	claims := jwt.Claims{
 		Email: "test@example.com",
 	}
-	mockRequestHelper.EXPECT().GetJwtData(gomock.Any()).AnyTimes().Return(&claims, nil)
+	mockRequestHelper.EXPECT().GetJwtDataFromRequest(gomock.Any()).AnyTimes().Return(&claims, nil)
 	middleware.AuthMw(mockRequestHelper)(handler)(responseRecorder, req)
 	assert.Equal(t, responseStatus, responseRecorder.Code)
 }
