@@ -76,7 +76,7 @@ func getUserPermissions() UserPermission {
 	return UserPermission{
 		List:   "User.List",
 		Create: "User.Create",
-		Edit:   "User.Edit",
+		Edit:   "User.Update",
 		Delete: "User.Delete",
 	}
 }

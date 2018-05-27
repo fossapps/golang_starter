@@ -56,7 +56,7 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	pass := "pass"
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	user := db.User{Email: email, Password: string(hash)}
-	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := starter.Server{
 		Logger: getLogger(),
@@ -69,6 +69,30 @@ func TestServer_LoginHandlerRespondsWithUnauthorizedIfWrongPassword(t *testing.T
 	server.LoginHandler()(responseRecorder, request)
 	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
 }
+
+func TestServer_LoginHandlerHandlesFindByEmailDbError(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	mockUsersCtrl := gomock.NewController(t)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager := mock.NewMockUserManager(mockUsersCtrl)
+	email := "admin@example.com"
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil, errors.New("db error"))
+	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
+	server := starter.Server{
+		Logger: getLogger(),
+		Db:     mockDb,
+	}
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.SetBasicAuth(email, "wrong_password")
+	server.LoginHandler()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
 func TestServer_LoginHandlerRespondsWithBadRequestIfNoUser(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
@@ -78,7 +102,7 @@ func TestServer_LoginHandlerRespondsWithBadRequestIfNoUser(t *testing.T) {
 	mockDb.EXPECT().Close().Times(1)
 	mockUserManager := mock.NewMockUserManager(mockUsersCtrl)
 	email := "admin@example.com"
-	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil)
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(nil, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := starter.Server{
 		Logger: getLogger(),
@@ -98,7 +122,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	mockUsersCtrl := gomock.NewController(t)
 	refreshTokenCtrl := gomock.NewController(t)
 	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
-	mockRefreshTokenManager.EXPECT().Add(gomock.Any(), gomock.Any())
+	mockRefreshTokenManager.EXPECT().Add(gomock.Any(), gomock.Any()).Return(nil)
 	mockDb := mock.NewMockDB(mockDbCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
@@ -108,7 +132,7 @@ func TestServer_LoginHandlerRespondsWithOkOnCorrectCredentials(t *testing.T) {
 	pass := "pass"
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	user := db.User{Email: email, Password: string(hash)}
-	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user)
+	mockUserManager.EXPECT().FindByEmail("admin@example.com").Return(&user, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	server := starter.Server{
 		Db: mockDb,
@@ -145,7 +169,7 @@ func TestServer_RefreshTokenHandlerStoresRefreshTokenInDb(t *testing.T) {
 	mockRefreshTokenManager.EXPECT().Add(gomock.Any(), gomock.Any())
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	user := db.User{Email: email, Password: string(hash)}
-	mockUserManager.EXPECT().FindByEmail(email).Return(&user)
+	mockUserManager.EXPECT().FindByEmail(email).Return(&user, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
 	server := starter.Server{
@@ -185,7 +209,7 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
-	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(nil)
+	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(nil, nil)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
 
 	responseRecorder := httptest.NewRecorder()
@@ -199,23 +223,85 @@ func TestServer_RefreshTokenHandlerRespondsWithStatusUnauthorizedIfRefreshTokenI
 	expect.Equal(http.StatusUnauthorized, responseRecorder.Code)
 }
 
+func TestServer_RefreshTokenHandlerHandlesRefreshToken_FindOneDbError(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	defer mockDbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(nil, errors.New("db error"))
+	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.Header.Add("Authorization", "Bearer auth_token")
+
+	server := starter.Server{
+		Db:     mockDb,
+		Logger: getLogger(),
+	}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_RefreshTokenHandlerHandlesUser_FindByIdDbError(t *testing.T) {
+	expect := assert.New(t)
+	mockDbCtrl := gomock.NewController(t)
+	defer mockDbCtrl.Finish()
+	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mock.NewMockUserManager(userCtrl)
+	mockUser.EXPECT().FindByID("some_user").AnyTimes().Return(nil, errors.New("db error"))
+	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
+	mockDb := mock.NewMockDB(mockDbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockToken := &db.RefreshToken{
+		Token: "auth_token",
+		User:  "some_user",
+	}
+	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken, nil)
+	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/", nil)
+	request.Header.Add("Authorization", "Bearer auth_token")
+
+	server := starter.Server{
+		Db:     mockDb,
+		Logger: getLogger(),
+	}
+	server.RefreshTokenHandler()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
 func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatusUnauthorized(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
+	defer mockDbCtrl.Finish()
 	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
 	mockUsersCtrl := gomock.NewController(t)
+	defer mockUsersCtrl.Finish()
 	mockUserManager := mock.NewMockUserManager(mockUsersCtrl)
 	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
 	mockDb := mock.NewMockDB(mockDbCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
-	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(nil)
+	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(nil, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
 		Token: "auth_token",
 		User:  "some_user",
 	}
-	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken)
+	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken, nil)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
 
 	responseRecorder := httptest.NewRecorder()
@@ -233,8 +319,11 @@ func TestServer_RefreshTokenHandlerRefreshTokenNotLinkedToUserRespondsWithStatus
 func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 	expect := assert.New(t)
 	mockDbCtrl := gomock.NewController(t)
+	defer mockDbCtrl.Finish()
 	refreshTokenCtrl := gomock.NewController(t)
+	defer refreshTokenCtrl.Finish()
 	mockUsersCtrl := gomock.NewController(t)
+	defer mockUsersCtrl.Finish()
 	mockUserManager := mock.NewMockUserManager(mockUsersCtrl)
 	mockRefreshTokenManager := mock.NewMockRefreshTokenManager(refreshTokenCtrl)
 	mockDb := mock.NewMockDB(mockDbCtrl)
@@ -245,13 +334,13 @@ func TestServer_RefreshTokenHandlerReturnsJWT(t *testing.T) {
 		Email:       "random",
 		Permissions: []string{"sudo"},
 	}
-	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(mockUser)
+	mockUserManager.EXPECT().FindByID("some_user").Times(1).Return(mockUser, nil)
 	mockDb.EXPECT().Users().Times(1).Return(mockUserManager)
 	mockToken := &db.RefreshToken{
 		Token: "auth_token",
 		User:  "some_user",
 	}
-	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken)
+	mockRefreshTokenManager.EXPECT().FindOne("auth_token").Times(1).Return(mockToken, nil)
 	mockDb.EXPECT().RefreshTokens().Times(1).Return(mockRefreshTokenManager)
 
 	responseRecorder := httptest.NewRecorder()

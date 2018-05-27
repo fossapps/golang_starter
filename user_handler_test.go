@@ -42,6 +42,32 @@ func TestServer_CreateUserReturnsBadRequestIfUserIsInvalid(t *testing.T) {
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
+func TestServer_CreateUserHandlesDbError(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	buffer := new(bytes.Buffer)
+	mockUser := starter.NewUser{
+		Email:    "user@example.com",
+		Password: "password",
+	}
+	json.NewEncoder(buffer).Encode(mockUser)
+	request := httptest.NewRequest("POST", "/", buffer)
+	// mock user manager
+	// mock db manager
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	userManager := mock.NewMockUserManager(userCtrl)
+	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(nil, errors.New("db error"))
+	dbManager := mock.NewMockDB(dbCtrl)
+	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
+	dbManager.EXPECT().Close().Times(1)
+	dbManager.EXPECT().Users().AnyTimes().Return(userManager)
+	starter.Server{Db: dbManager}.CreateUser()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
 func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T) {
 	expect := assert.New(t)
 	responseRecorder := httptest.NewRecorder()
@@ -62,7 +88,7 @@ func TestServer_CreateUserReturnsConflictStatusIfUserAlreadyPresent(t *testing.T
 	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(&db.User{
 		Email:    mockUser.Email,
 		Password: mockUser.Password,
-	})
+	}, nil)
 	dbManager := mock.NewMockDB(dbCtrl)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
 	dbManager.EXPECT().Close().Times(1)
@@ -87,7 +113,7 @@ func TestServer_CreateUserRespondsWithInternalServerErrorIfDbError(t *testing.T)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
 	userManager := mock.NewMockUserManager(userCtrl)
-	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(nil)
+	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(nil, nil)
 	userManager.EXPECT().Create(gomock.Any()).Return(errors.New("db error"))
 	dbManager := mock.NewMockDB(dbCtrl)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
@@ -114,7 +140,7 @@ func TestServer_CreateUserRespondsWithStatusCreated(t *testing.T) {
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
 	userManager := mock.NewMockUserManager(userCtrl)
-	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(nil)
+	userManager.EXPECT().FindByEmail(mockUser.Email).AnyTimes().Return(nil, nil)
 	userManager.EXPECT().Create(gomock.Any()).Return(nil)
 	dbManager := mock.NewMockDB(dbCtrl)
 	dbManager.EXPECT().Clone().Times(1).Return(dbManager)
@@ -207,13 +233,37 @@ func TestServer_UserAvailabilityReturnsFalseIfUnavailable(t *testing.T) {
 	mockUserManager := mock.NewMockUserManager(userCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
-	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(&mockUser)
+	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(&mockUser, nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 	starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
 	response := new(starter.UserAvailabilityResponse)
 	json.NewDecoder(responseRecorder.Body).Decode(&response)
 	expect.False(response.Available)
+}
+
+func TestServer_UserAvailabilityHandlesDbError(t *testing.T) {
+	expect := assert.New(t)
+	responseRecorder := httptest.NewRecorder()
+	email := "admin@example.com"
+	mockUser := db.User{
+		Email: email,
+	}
+	buffer := new(bytes.Buffer)
+	json.NewEncoder(buffer).Encode(mockUser)
+	request := httptest.NewRequest("GET", "/", buffer)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockDb := mock.NewMockDB(dbCtrl)
+	mockUserManager := mock.NewMockUserManager(userCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().Times(1)
+	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil, errors.New("db error"))
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
+	starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
 }
 
 func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
@@ -234,7 +284,7 @@ func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
 	mockUserManager := mock.NewMockUserManager(userCtrl)
 	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
 	mockDb.EXPECT().Close().Times(1)
-	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil)
+	mockUserManager.EXPECT().FindByEmail(email).Times(1).Return(nil, nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 	starter.Server{Db: mockDb}.UserAvailability()(responseRecorder, request)
 	expect.Equal(http.StatusOK, responseRecorder.Code)
@@ -245,9 +295,9 @@ func TestServer_UserAvailabilityReturnsTrueIfAvailable(t *testing.T) {
 
 // endregion
 
-// region User.Edit
+// region User.Update
 
-func TestServer_EditUserErrorIfUserDoesNotExist(t *testing.T) {
+func TestServer_UpdateUserHandlesFindByEmailDbError(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
@@ -257,21 +307,45 @@ func TestServer_EditUserErrorIfUserDoesNotExist(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUser := mock.NewMockUserManager(userCtrl)
-	mockUser.EXPECT().FindByID("id").Return(nil)
+	mockUser.EXPECT().FindByID("id").Return(nil, errors.New("db error"))
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
 	server := starter.Server{
 		Db: mockDb,
 	}
-	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("PUT", "/users/id", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestServer_UpdateUserErrorIfUserDoesNotExist(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mock.NewMockDB(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mock.NewMockUserManager(userCtrl)
+	mockUser.EXPECT().FindByID("id").Return(nil, nil)
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := starter.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
 	responseRecorder := httptest.NewRecorder()
 	request := httptest.NewRequest("PUT", "/users/id", nil)
 	router.ServeHTTP(responseRecorder, request)
 	expect.Equal(http.StatusPreconditionFailed, responseRecorder.Code)
 }
 
-func TestServer_EditUserErrorIfUserIsInvalid(t *testing.T) {
+func TestServer_UpdateUserErrorIfUserIsInvalid(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
@@ -284,14 +358,14 @@ func TestServer_EditUserErrorIfUserIsInvalid(t *testing.T) {
 	mockUser.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
-	})
+	}, nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
 	server := starter.Server{
 		Db: mockDb,
 	}
-	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email.example.com",
@@ -302,7 +376,7 @@ func TestServer_EditUserErrorIfUserIsInvalid(t *testing.T) {
 	expect.Equal(http.StatusBadRequest, responseRecorder.Code)
 }
 
-func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
+func TestServer_UpdateUserHandlesDbNotFoundError(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
@@ -315,15 +389,15 @@ func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
 	mockUserManager.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
-	})
-	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(mgo.ErrNotFound)
+	}, nil)
+	mockUserManager.EXPECT().Update("id", gomock.Any()).Times(1).Return(mgo.ErrNotFound)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
 	server := starter.Server{
 		Db: mockDb,
 	}
-	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email@example.com",
@@ -334,7 +408,7 @@ func TestServer_EditUserHandlesDbNotFoundError(t *testing.T) {
 	expect.Equal(http.StatusPreconditionFailed, responseRecorder.Code)
 }
 
-func TestServer_EditUserHandlesDbError(t *testing.T) {
+func TestServer_UpdateUserHandlesDbError(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
@@ -347,15 +421,15 @@ func TestServer_EditUserHandlesDbError(t *testing.T) {
 	mockUserManager.EXPECT().FindByID("id").Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
-	})
-	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(errors.New("db error"))
+	}, nil)
+	mockUserManager.EXPECT().Update("id", gomock.Any()).Times(1).Return(errors.New("db error"))
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
 	server := starter.Server{
 		Db: mockDb,
 	}
-	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email: "new_email@example.com",
@@ -366,7 +440,7 @@ func TestServer_EditUserHandlesDbError(t *testing.T) {
 	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
 }
 
-func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
+func TestServer_UpdateUserReturnsOkWhenValid(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
 	defer dbCtrl.Finish()
@@ -379,15 +453,15 @@ func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
 	mockUserManager.EXPECT().FindByID("id").AnyTimes().Return(&db.User{
 		Email:       "mail@example.com",
 		Permissions: []string{"sudo"},
-	})
-	mockUserManager.EXPECT().Edit("id", gomock.Any()).Times(1).Return(nil)
+	}, nil)
+	mockUserManager.EXPECT().Update("id", gomock.Any()).Times(1).Return(nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUserManager)
 
 	router := mux.NewRouter()
 	server := starter.Server{
 		Db: mockDb,
 	}
-	router.HandleFunc("/users/{user}", server.EditUser()).Methods("PUT")
+	router.HandleFunc("/users/{user}", server.UpdateUser()).Methods("PUT")
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(starter.NewUser{
 		Email:    "new_email@example.com",
@@ -403,6 +477,30 @@ func TestServer_EditUserReturnsOkWhenValid(t *testing.T) {
 
 // region User.Get
 
+func TestServer_UserGetHandlesDbError(t *testing.T) {
+	expect := assert.New(t)
+	dbCtrl := gomock.NewController(t)
+	defer dbCtrl.Finish()
+	mockDb := mock.NewMockDB(dbCtrl)
+	mockDb.EXPECT().Clone().AnyTimes().Return(mockDb)
+	mockDb.EXPECT().Close().AnyTimes()
+	userCtrl := gomock.NewController(t)
+	defer userCtrl.Finish()
+	mockUser := mock.NewMockUserManager(userCtrl)
+	mockUser.EXPECT().FindByID("id").Return(nil, errors.New("db error"))
+	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
+
+	router := mux.NewRouter()
+	server := starter.Server{
+		Db: mockDb,
+	}
+	router.HandleFunc("/users/{user}", server.GetUser()).Methods("GET")
+	responseRecorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/users/id", nil)
+	router.ServeHTTP(responseRecorder, request)
+	expect.Equal(http.StatusInternalServerError, responseRecorder.Code)
+}
+
 func TestServer_UserGetReturnsStatusNotFoundWhenUserDoesNotExist(t *testing.T) {
 	expect := assert.New(t)
 	dbCtrl := gomock.NewController(t)
@@ -413,7 +511,7 @@ func TestServer_UserGetReturnsStatusNotFoundWhenUserDoesNotExist(t *testing.T) {
 	userCtrl := gomock.NewController(t)
 	defer userCtrl.Finish()
 	mockUser := mock.NewMockUserManager(userCtrl)
-	mockUser.EXPECT().FindByID("id").Return(nil)
+	mockUser.EXPECT().FindByID("id").Return(nil, nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()
@@ -442,7 +540,7 @@ func TestServer_GetUserReturnsUser(t *testing.T) {
 		Email:       "example@admin.com",
 		Permissions: []string{"users.create"},
 	}
-	mockUser.EXPECT().FindByID("id").Return(&dbUser)
+	mockUser.EXPECT().FindByID("id").Return(&dbUser, nil)
 	mockDb.EXPECT().Users().AnyTimes().Return(mockUser)
 
 	router := mux.NewRouter()

@@ -46,23 +46,12 @@ func (mr *MockUserManagerMockRecorder) Create(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserManager)(nil).Create), arg0)
 }
 
-// Edit mocks base method
-func (m *MockUserManager) Edit(arg0 string, arg1 db.User) error {
-	ret := m.ctrl.Call(m, "Edit", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Edit indicates an expected call of Edit
-func (mr *MockUserManagerMockRecorder) Edit(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockUserManager)(nil).Edit), arg0, arg1)
-}
-
 // FindByEmail mocks base method
-func (m *MockUserManager) FindByEmail(arg0 string) *db.User {
+func (m *MockUserManager) FindByEmail(arg0 string) (*db.User, error) {
 	ret := m.ctrl.Call(m, "FindByEmail", arg0)
 	ret0, _ := ret[0].(*db.User)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FindByEmail indicates an expected call of FindByEmail
@@ -71,10 +60,11 @@ func (mr *MockUserManagerMockRecorder) FindByEmail(arg0 interface{}) *gomock.Cal
 }
 
 // FindByID mocks base method
-func (m *MockUserManager) FindByID(arg0 string) *db.User {
+func (m *MockUserManager) FindByID(arg0 string) (*db.User, error) {
 	ret := m.ctrl.Call(m, "FindByID", arg0)
 	ret0, _ := ret[0].(*db.User)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FindByID indicates an expected call of FindByID
@@ -93,4 +83,16 @@ func (m *MockUserManager) List() ([]db.User, error) {
 // List indicates an expected call of List
 func (mr *MockUserManagerMockRecorder) List() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserManager)(nil).List))
+}
+
+// Update mocks base method
+func (m *MockUserManager) Update(arg0 string, arg1 db.User) error {
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockUserManagerMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserManager)(nil).Update), arg0, arg1)
 }

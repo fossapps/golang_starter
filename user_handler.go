@@ -41,26 +41,31 @@ func (user NewUser) Ok() bool {
 // CreateUser handler used for creating new users
 func (s Server) CreateUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := new(NewUser)
-		err := json.NewDecoder(r.Body).Decode(&user)
+		newUser := new(NewUser)
+		err := json.NewDecoder(r.Body).Decode(&newUser)
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
 			return
 		}
-		if !user.Ok() {
+		if !newUser.Ok() {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
 			return
 		}
 		database := s.Db.Clone()
 		defer database.Close()
-		if database.Users().FindByEmail(user.Email) != nil {
+		user, err := database.Users().FindByEmail(newUser.Email)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
+		if user != nil {
 			s.ErrorResponse(w, r, http.StatusConflict, "duplicate registration")
 			return
 		}
 		validUser := db.User{
-			Email:       user.Email,
-			Password:    user.Password,
-			Permissions: user.Permissions,
+			Email:       newUser.Email,
+			Password:    newUser.Password,
+			Permissions: newUser.Permissions,
 		}
 		err = database.Users().Create(validUser)
 		if err != nil {
@@ -96,24 +101,32 @@ func (s Server) UserAvailability() http.HandlerFunc {
 		}
 		database := s.Db.Clone()
 		defer database.Close()
-		user := database.Users().FindByEmail(requestedUser.Email)
+		user, err := database.Users().FindByEmail(requestedUser.Email)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
 		respond.With(w, r, http.StatusOK, UserAvailabilityResponse{
 			Available: user == nil,
 		})
 	})
 }
 
-// EditUser to update information about user
-func (s Server) EditUser() http.HandlerFunc {
+// UpdateUser to update information about user
+func (s Server) UpdateUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := mux.Vars(r)["user"]
-		user := s.Db.Users().FindByID(userID)
+		user, err := s.Db.Users().FindByID(userID)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
 			return
 		}
 		newUser := new(NewUser)
-		err := json.NewDecoder(r.Body).Decode(&newUser)
+		err = json.NewDecoder(r.Body).Decode(&newUser)
 		if err != nil || !newUser.Ok() {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid user")
 			return
@@ -123,7 +136,7 @@ func (s Server) EditUser() http.HandlerFunc {
 			Email:       newUser.Email,
 			Password:    newUser.Password,
 		}
-		err = s.Db.Users().Edit(userID, validUser)
+		err = s.Db.Users().Update(userID, validUser)
 		if err == mgo.ErrNotFound {
 			s.ErrorResponse(w, r, http.StatusPreconditionFailed, "user not found")
 			return
@@ -140,7 +153,11 @@ func (s Server) EditUser() http.HandlerFunc {
 func (s Server) GetUser() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["user"]
-		user := s.Db.Users().FindByID(id)
+		user, err := s.Db.Users().FindByID(id)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusNotFound, "not found")
 			return

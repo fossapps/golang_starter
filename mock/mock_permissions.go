@@ -47,10 +47,11 @@ func (mr *MockPermissionManagerMockRecorder) Create(arg0, arg1 interface{}) *gom
 }
 
 // Exists mocks base method
-func (m *MockPermissionManager) Exists(arg0 string) bool {
+func (m *MockPermissionManager) Exists(arg0 string) (bool, error) {
 	ret := m.ctrl.Call(m, "Exists", arg0)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Exists indicates an expected call of Exists

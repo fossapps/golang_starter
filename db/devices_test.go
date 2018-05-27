@@ -19,8 +19,11 @@ func TestDeviceManager_Register(t *testing.T) {
 	defer database.DropDatabase()
 	deviceManager := db.GetDeviceManager(database)
 	token := "random_device_token"
-	deviceManager.Register(token)
-	expect.Equal(token, deviceManager.FindByToken(token).Token)
+	err = deviceManager.Register(token)
+	expect.Nil(err)
+	result, err := deviceManager.FindByToken(token)
+	expect.Equal(token, result.Token)
+	expect.Nil(err)
 }
 
 func TestDeviceManager_RegisterReturnsErrorOnDuplicate(t *testing.T) {
@@ -43,9 +46,13 @@ func TestDeviceManager_Exists(t *testing.T) {
 	defer database.DropDatabase()
 	deviceManager := db.GetDeviceManager(database)
 	token := "token"
-	expect.False(deviceManager.Exists(token))
+	result, err := deviceManager.Exists(token)
+	expect.False(result)
+	expect.Nil(err)
 	deviceManager.Register(token)
-	expect.True(deviceManager.Exists(token))
+	result, err = deviceManager.Exists(token)
+	expect.True(result)
+	expect.Nil(err)
 }
 
 func TestDeviceManager_FindByTokenReturnsNilIfNotFound(t *testing.T) {
@@ -56,7 +63,11 @@ func TestDeviceManager_FindByTokenReturnsNilIfNotFound(t *testing.T) {
 	defer database.DropDatabase()
 	deviceManager := db.GetDeviceManager(database)
 	token := "find_token"
-	expect.Nil(deviceManager.FindByToken(token))
+	res, err := deviceManager.FindByToken(token)
+	expect.Nil(res)
+	expect.Nil(err)
 	deviceManager.Register(token)
-	expect.NotNil(deviceManager.FindByToken(token))
+	res, err = deviceManager.FindByToken(token)
+	expect.NotNil(res)
+	expect.Nil(err)
 }

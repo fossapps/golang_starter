@@ -21,7 +21,7 @@ func TestSeedCallsFirstTime(t *testing.T) {
 	mockMigration.EXPECT().GetDescription().MinTimes(1).Return("description")
 	mockMigration.EXPECT().Apply(gomock.Any())
 	// setup mockMigrationManager behavior
-	mockMigrationManager.EXPECT().ShouldRun("sample_key").Return(true)
+	mockMigrationManager.EXPECT().IsApplied("sample_key").Return(false, nil)
 	mockMigrationManager.EXPECT().MarkApplied("sample_key", "description")
 	// setup database behavior
 	mockDatabase.EXPECT().Migrations().MinTimes(1).Return(mockMigrationManager)
@@ -39,7 +39,7 @@ func TestSeedDoesNotExecuteDuplicates(t *testing.T) {
 	mockMigration.EXPECT().GetKey().MinTimes(1).Return("sample_key")
 	mockMigration.EXPECT().Apply(gomock.Any()).Times(0)
 	// setup mockMigrationManager behavior
-	mockMigrationManager.EXPECT().ShouldRun("sample_key").Return(false)
+	mockMigrationManager.EXPECT().IsApplied("sample_key").Return(true, nil)
 	mockMigrationManager.EXPECT().MarkApplied("sample_key", "description")
 	// setup database behavior
 	mockDatabase.EXPECT().Migrations().Times(1).Return(mockMigrationManager)

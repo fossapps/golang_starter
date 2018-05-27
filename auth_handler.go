@@ -40,12 +40,16 @@ func (s *Server) LoginHandler() http.HandlerFunc {
 		}
 		dbLayer := s.Db.Clone()
 		defer dbLayer.Close()
-		user := dbLayer.Users().FindByEmail(email)
+		user, err := dbLayer.Users().FindByEmail(email)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
 		if user == nil {
 			s.ErrorResponse(w, r, http.StatusBadRequest, "invalid credentials")
 			return
 		}
-		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid credentials")
 			return
@@ -80,17 +84,27 @@ func (s *Server) RefreshTokenHandler() http.HandlerFunc {
 		}
 		dbLayer := s.Db.Clone()
 		defer dbLayer.Close()
-		refreshToken := dbLayer.RefreshTokens().FindOne(token)
-		if refreshToken == nil {
-			s.ErrorResponse(w, r, http.StatusUnauthorized, "refresh token invalid")
+		refreshToken, err := dbLayer.RefreshTokens().FindOne(token)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
 			return
 		}
-		user := dbLayer.Users().FindByID(refreshToken.User)
-		if user == nil {
+		if refreshToken == nil {
 			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
 			return
 		}
-		token, err := getJwtForUser(user)
+		user, err := dbLayer.Users().FindByID(refreshToken.User)
+		if err != nil {
+			s.ErrorResponse(w, r, http.StatusInternalServerError, "server error")
+			return
+		}
+		if user == nil {
+			// todo shouldn't have happened, log
+			s.Logger.Warn("refresh token found in collection, but user is nil: ", refreshToken)
+			s.ErrorResponse(w, r, http.StatusUnauthorized, "invalid refresh token")
+			return
+		}
+		token, err = getJwtForUser(user)
 		if err != nil {
 			// since it's a separate thing, maybe application init test should take care of it
 			// then we don't need to check if it had an error?

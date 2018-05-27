@@ -9,8 +9,8 @@ import (
 
 // MigrationManager deals with any info related to migration saved to disk
 type MigrationManager interface {
-	MarkApplied(key string, description string)
-	ShouldRun(key string) bool
+	MarkApplied(key string, description string) error
+	IsApplied(key string) (bool, error)
 }
 
 // MigrationInfo information about migration
@@ -35,21 +35,24 @@ func GetMigrationManager(db *mgo.Database) MigrationManager {
 }
 
 // MarkApplied marks a migration key as applied
-func (dbLayer migrationManagerLayer) MarkApplied(key string, description string) {
+func (dbLayer migrationManagerLayer) MarkApplied(key string, description string) error {
 	info := MigrationInfo{
 		Key:         key,
 		Description: description,
 		AppliedAt:   time.Now(),
 	}
-	dbLayer.db.C(seedingCollectionName).Insert(info)
+	return dbLayer.db.C(seedingCollectionName).Insert(info)
 }
 
-// ShouldRun determine weather or not a migration should run, if it's already applied, then it returns false
-func (dbLayer migrationManagerLayer) ShouldRun(key string) bool {
+// IsApplied determine weather or not a migration should run, if it's already applied, then it returns false
+func (dbLayer migrationManagerLayer) IsApplied(key string) (bool, error) {
 	collection := dbLayer.db.C(seedingCollectionName)
 	result := new(MigrationInfo)
-	collection.Find(bson.M{
+	err := collection.Find(bson.M{
 		"key": key,
 	}).One(&result)
-	return result.Key != key
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+	return result.Key == key, err
 }

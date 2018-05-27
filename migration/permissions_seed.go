@@ -33,7 +33,7 @@ func (PermissionSeeds) Apply(dbLayer db.DB) {
 			Description: "Permission to create a new user",
 		},
 		{
-			Key:         "User.Edit",
+			Key:         "User.Update",
 			Description: "Permission to edit user",
 		},
 		{

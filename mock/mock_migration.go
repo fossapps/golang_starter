@@ -33,24 +33,27 @@ func (m *MockMigrationManager) EXPECT() *MockMigrationManagerMockRecorder {
 	return m.recorder
 }
 
+// IsApplied mocks base method
+func (m *MockMigrationManager) IsApplied(arg0 string) (bool, error) {
+	ret := m.ctrl.Call(m, "IsApplied", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsApplied indicates an expected call of IsApplied
+func (mr *MockMigrationManagerMockRecorder) IsApplied(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsApplied", reflect.TypeOf((*MockMigrationManager)(nil).IsApplied), arg0)
+}
+
 // MarkApplied mocks base method
-func (m *MockMigrationManager) MarkApplied(arg0, arg1 string) {
-	m.ctrl.Call(m, "MarkApplied", arg0, arg1)
+func (m *MockMigrationManager) MarkApplied(arg0, arg1 string) error {
+	ret := m.ctrl.Call(m, "MarkApplied", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // MarkApplied indicates an expected call of MarkApplied
 func (mr *MockMigrationManagerMockRecorder) MarkApplied(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkApplied", reflect.TypeOf((*MockMigrationManager)(nil).MarkApplied), arg0, arg1)
-}
-
-// ShouldRun mocks base method
-func (m *MockMigrationManager) ShouldRun(arg0 string) bool {
-	ret := m.ctrl.Call(m, "ShouldRun", arg0)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// ShouldRun indicates an expected call of ShouldRun
-func (mr *MockMigrationManagerMockRecorder) ShouldRun(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldRun", reflect.TypeOf((*MockMigrationManager)(nil).ShouldRun), arg0)
 }

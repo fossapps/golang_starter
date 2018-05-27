@@ -20,7 +20,9 @@ func TestUserLayer_FindByEmailReturnsNilIfNotExists(t *testing.T) {
 	defer database.DropDatabase()
 
 	userManager := db.GetUserManager(database)
-	expect.Nil(userManager.FindByEmail("randomEmail@example.com"))
+	result, err := userManager.FindByEmail("randomEmail@example.com")
+	expect.Nil(result)
+	expect.Nil(err)
 }
 
 func TestUserLayer_FindByIdReturnsNilIfNotExists(t *testing.T) {
@@ -32,7 +34,9 @@ func TestUserLayer_FindByIdReturnsNilIfNotExists(t *testing.T) {
 
 	userManager := db.GetUserManager(database)
 	// random id
-	expect.Nil(userManager.FindByID("5adbf94839b5b200068fa33e"))
+	result, err := userManager.FindByID("5adbf94839b5b200068fa33e")
+	expect.Nil(result)
+	expect.Nil(err)
 }
 
 func TestUserLayer_CreateNewUser(t *testing.T) {
@@ -50,8 +54,9 @@ func TestUserLayer_CreateNewUser(t *testing.T) {
 		Password:    password,
 		Email:       email,
 	})
-	user := userManager.FindByEmail(email)
+	user, err := userManager.FindByEmail(email)
 	expect.Equal(email, user.Email)
+	expect.Nil(err)
 	expect.NotEmpty(password, user.Password)
 }
 
@@ -70,9 +75,11 @@ func TestUserLayer_FindById(t *testing.T) {
 		Password:    password,
 		Email:       email,
 	})
-	id := userManager.FindByEmail(email).ID
-	user := userManager.FindByID(id.Hex())
+	user, err := userManager.FindByEmail(email)
+	id := user.ID
+	user, err = userManager.FindByID(id.Hex())
 	expect.Equal(email, user.Email)
+	expect.Nil(err)
 }
 
 func TestUserLayer_List(t *testing.T) {
@@ -110,11 +117,13 @@ func TestUserLayer_Edit(t *testing.T) {
 	userManager := db.GetUserManager(database)
 	expect.Nil(userManager.Create(mockUsers[0]))
 	expect.Nil(userManager.Create(mockUsers[1]))
-	user := userManager.FindByEmail("mail_test@example.com")
-	expect.Equal("mail_test@example.com", user.Email)
-	err = userManager.Edit(user.ID.Hex(), db.User{Email: "mail_updated@example.com"})
+	user, err := userManager.FindByEmail("mail_test@example.com")
 	expect.Nil(err)
-	updatedUser := userManager.FindByID(user.ID.Hex())
+	expect.Equal("mail_test@example.com", user.Email)
+	err = userManager.Update(user.ID.Hex(), db.User{Email: "mail_updated@example.com"})
+	expect.Nil(err)
+	updatedUser, err := userManager.FindByID(user.ID.Hex())
+	expect.Nil(err)
 	expect.Equal("mail_updated@example.com", updatedUser.Email)
 	// expect.Equal("sudo", updatedUser.Permissions[0])
 }

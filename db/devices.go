@@ -15,8 +15,8 @@ type Device struct {
 // DeviceManager interface to satisfied for managing devices
 type DeviceManager interface {
 	Register(token string) error
-	Exists(token string) bool
-	FindByToken(token string) *Device
+	Exists(token string) (bool, error)
+	FindByToken(token string) (*Device, error)
 }
 
 // deviceManager implementation of DeviceManager
@@ -26,7 +26,11 @@ type deviceManager struct {
 
 // Register saves a new device to database
 func (deviceManager deviceManager) Register(token string) error {
-	if deviceManager.Exists(token) {
+	exists, err := deviceManager.Exists(token)
+	if err != nil {
+		return err
+	}
+	if exists {
 		return errors.New("device already exists")
 	}
 	return deviceManager.db.C("devices").Insert(Device{
@@ -35,20 +39,30 @@ func (deviceManager deviceManager) Register(token string) error {
 }
 
 // Exists checks if a device already exists
-func (deviceManager deviceManager) Exists(token string) bool {
-	return deviceManager.FindByToken(token) != nil
+func (deviceManager deviceManager) Exists(token string) (bool, error) {
+	device, err := deviceManager.FindByToken(token)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+	return device != nil, err
 }
 
 // FindByToken returns a device for a given token
-func (deviceManager deviceManager) FindByToken(token string) *Device {
+func (deviceManager deviceManager) FindByToken(token string) (*Device, error) {
 	var device Device
-	deviceManager.db.C("devices").Find(bson.M{
+	err := deviceManager.db.C("devices").Find(bson.M{
 		"token": token,
 	}).One(&device)
-	if device.Token == "" {
-		return nil
+	if err == mgo.ErrNotFound {
+		return nil, nil
 	}
-	return &device
+	if err != nil {
+		return nil, err
+	}
+	if device.Token == "" {
+		return nil, nil
+	}
+	return &device, nil
 }
 
 // GetDeviceManager returns an implementation of DeviceManager
